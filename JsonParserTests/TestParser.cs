@@ -194,7 +194,7 @@ namespace JsonParserTests
         class TestObject3
         {
             public int A, B, C, D, E, F;
-            public TestObject3 Z;
+            public TestObject3 Z { get; set; }
         }
 
         [TestMethod]
@@ -202,7 +202,7 @@ namespace JsonParserTests
         {
             StringBuilder builder = new StringBuilder();
             builder.Append("[");
-            const int numTests = 1000000;
+            const int numTests = 100000;
             for (int i = 0; i<numTests; i++)
             {
                 builder.Append("{\"Z\":{\"F\":10}}");
@@ -215,6 +215,14 @@ namespace JsonParserTests
             var result = json.FromJson<List<TestObject3>>();
             for (int i = 0; i < result.Count; i++)
                 Assert.AreEqual(10, result[i].Z.F);
+        }
+
+        [TestMethod]
+        public void CorruptionTest()
+        {
+            "{{{{{{[[[]]][[,,,,]],],],]]][[nulldsfoijsfd[[]]]]]]]]]}}}}}{{{{{{{{{D{FD{FD{F{{{{{}}}XXJJJI%&:,,,,,".FromJson<object>();
+            "[[,[,,[,:::[[[[[[[".FromJson<List<List<int>>>();
+            "{::,[][][],::::,}".FromJson<Dictionary<string, object>>();
         }
     }
 }

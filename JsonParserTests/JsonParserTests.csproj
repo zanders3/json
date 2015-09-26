@@ -52,6 +52,7 @@
   <ItemGroup>
     <Compile Include="TestParser.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="TestWriter.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\JsonParser.csproj">

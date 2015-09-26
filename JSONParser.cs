@@ -5,16 +5,29 @@ using System.Linq;
 using System.Reflection;
 using System.Runtime.Serialization;
 using System.Text;
-using System.Text.RegularExpressions;
-using System.Threading.Tasks;
 
 namespace JsonParser
 {
-    //Going to reflect over structures to parse them on the fly. No non-standard JSON supported. No use of JIT emission. Minimal GC allocs and wastage. Maximum 32 KB of JSON is supported.
+    // Really simple JSON parser in ~250 lines
+    // - Attempts to parse JSON files with minimal GC allocation
+    // - Nice and simple "[1,2,3]".FromJson<List<int>>() API
+    // - Classes and structs can be parsed too!
+    //      class Foo { public int Value; }
+    //      "{\"Value\":10}".FromJson<Foo>()
+    // - No JIT Emit support to support AOT compilation on iOS
+    // - Attempts are made to NOT throw an exception if the JSON is corrupted or invalid: returns null instead.
+    // - Only public fields and property setters on classes/structs will be written to
+    //
+    // Limitations:
+    // - No JIT Emit support to parse structures quickly
+    // - Limited to parsing <2GB JSON files (due to int.MaxValue)
+    // - Parsing of abstract classes or interfaces is NOT supported and will throw an exception.
     public static class JSONParser
     {
         static Stack<List<string>> splitArrayPool = new Stack<List<string>>();
         static StringBuilder stringBuilder = new StringBuilder();
+        static Dictionary<Type, Dictionary<string, FieldInfo>> fieldInfoCache = new Dictionary<Type, Dictionary<string, FieldInfo>>();
+        static Dictionary<Type, Dictionary<string, PropertyInfo>> propertyInfoCache = new Dictionary<Type, Dictionary<string, PropertyInfo>>();
 
         public static T FromJson<T>(this string json)
         {
@@ -107,6 +120,8 @@ namespace JsonParser
         {
             if (type == typeof(string))
             {
+                if (json.Length <= 2)
+                    return string.Empty;
                 string str = json.Substring(1, json.Length - 2);
                 return str.Replace("\\", string.Empty);
             }
@@ -185,6 +200,8 @@ namespace JsonParser
                 IDictionary dictionary = (IDictionary)type.GetConstructor(new Type[] { typeof(int) }).Invoke(new object[] { elems.Count / 2 });
                 for (int i = 0; i < elems.Count; i += 2)
                 {
+                    if (elems[i].Length <= 2)
+                        continue;
                     string keyValue = elems[i].Substring(1, elems[i].Length - 2);
                     object value = ParseValue(valueType, elems[i + 1]);
                     dictionary.Add(keyValue, value);
@@ -193,47 +210,50 @@ namespace JsonParser
             }
             else if (json[0] == '{' && json[json.Length - 1] == '}')
             {
-                object instance = FormatterServices.GetUninitializedObject(type);
-
-                //The list is split into key/value pairs only, this means the split must be divisible by 2 to be valid JSON
-                List<string> elems = Split(json);
-                if (elems.Count % 2 != 0)
-                    return instance;
-
-                //TODO: cache this and build name -> set method map?
-                FieldInfo[] fields = type.GetFields();
-                PropertyInfo[] properties = type.GetProperties();
-                for (int i = 0; i < elems.Count; i += 2)
-                {
-                    string key = elems[i].Substring(1, elems[i].Length - 2);
-                    string value = elems[i + 1];
-
-                    bool found = false;
-                    for (int j = 0; j < fields.Length; j++)
-                    {
-                        if (fields[j].Name == key)
-                        {
-                            fields[j].SetValue(instance, ParseValue(fields[j].FieldType, value));
-                            found = true;
-                            break;
-                        }
-                    }
-                    if (found)
-                        continue;
-                    for (int j = 0; j<properties.Length; j++)
-                    {
-                        if (properties[j].Name == key)
-                        {
-                            properties[j].SetValue(instance, ParseValue(properties[j].PropertyType, value));
-                            break;
-                        }
-                    }
-                }
-
-                return instance;
+                return ParseObject(type, json);
             }
-            
+
             return null;
+        }
+
+        static object ParseObject(Type type, string json)
+        {
+            object instance = FormatterServices.GetUninitializedObject(type);
+
+            //The list is split into key/value pairs only, this means the split must be divisible by 2 to be valid JSON
+            List<string> elems = Split(json);
+            if (elems.Count % 2 != 0)
+                return instance;
+
+            Dictionary<string, FieldInfo> nameToField;
+            Dictionary<string, PropertyInfo> nameToProperty;
+            if (!fieldInfoCache.TryGetValue(type, out nameToField))
+            {
+                nameToField = type.GetFields().Where(field => field.IsPublic).ToDictionary(field => field.Name);
+                fieldInfoCache.Add(type, nameToField);
+            }
+            if (!propertyInfoCache.TryGetValue(type, out nameToProperty))
+            {
+                nameToProperty = type.GetProperties().ToDictionary(p => p.Name);
+                propertyInfoCache.Add(type, nameToProperty);
+            }
+
+            for (int i = 0; i < elems.Count; i += 2)
+            {
+                if (elems[i].Length <= 2)
+                    continue;
+                string key = elems[i].Substring(1, elems[i].Length - 2);
+                string value = elems[i + 1];
+
+                FieldInfo fieldInfo;
+                PropertyInfo propertyInfo;
+                if (nameToField.TryGetValue(key, out fieldInfo))
+                    fieldInfo.SetValue(instance, ParseValue(fieldInfo.FieldType, value));
+                else if (nameToProperty.TryGetValue(key, out propertyInfo))
+                    propertyInfo.SetValue(instance, ParseValue(propertyInfo.PropertyType, value));
+            }
+
+            return instance;
         }
     }
 }
