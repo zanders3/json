@@ -16,5 +16,31 @@ namespace JsonParserTests
             Assert.AreEqual("[1,2,3]", new int[] { 1, 2, 3 }.ToJson());
             Assert.AreEqual("[1,2,3]", new List<int> { 1, 2, 3 }.ToJson());
         }
+
+        [TestMethod]
+        public void TestDicts()
+        {
+            Assert.AreEqual("{\"foo\":\"bar\"}", new Dictionary<string, string> { { "foo", "bar" } }.ToJson());
+            Assert.AreEqual("{\"foo\":123}", new Dictionary<string, int> { { "foo", 123 } }.ToJson());
+        }
+
+        class SimpleObject
+        {
+            public SimpleObject A;
+            public List<int> B;
+            public string C { get; set; }
+        }
+
+        struct SimpleStruct
+        {
+            public SimpleObject A;
+        }
+
+        [TestMethod]
+        public void TestObjects()
+        {
+            Assert.AreEqual("{\"A\":{},\"B\":[1,2,3],\"C\":\"Test\"}", new SimpleObject { A = new SimpleObject(), B = new List<int> { 1, 2, 3 }, C = "Test" }.ToJson());
+            Assert.AreEqual("{\"A\":{\"A\":{},\"B\":[1,2,3],\"C\":\"Test\"}}", new SimpleStruct { A = new SimpleObject { A = new SimpleObject(), B = new List<int> { 1, 2, 3 }, C = "Test" } }.ToJson());
+        }
     }
 }

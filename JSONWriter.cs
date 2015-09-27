@@ -79,7 +79,9 @@ namespace JsonParser
                         isFirst = false;
                     else
                         stringBuilder.Append(',');
+                    stringBuilder.Append('\"');
                     stringBuilder.Append((string)key);
+                    stringBuilder.Append("\":");
                     AppendValue(stringBuilder, dict[key]);
                 }
                 stringBuilder.Append('}');
@@ -94,11 +96,18 @@ namespace JsonParser
                 {
                     if (fieldInfos[i].IsPublic)
                     {
-                        if (isFirst)
-                            isFirst = false;
-                        else
-                            stringBuilder.Append(',');
-                        AppendValue(stringBuilder, fieldInfos[i].GetValue(item));
+                        object value = fieldInfos[i].GetValue(item);
+                        if (value != null)
+                        {
+                            if (isFirst)
+                                isFirst = false;
+                            else
+                                stringBuilder.Append(',');
+                            stringBuilder.Append('\"');
+                            stringBuilder.Append(fieldInfos[i].Name);
+                            stringBuilder.Append("\":");
+                            AppendValue(stringBuilder, value);
+                        }
                     }
                 }
                 PropertyInfo[] propertyInfo = type.GetProperties();
@@ -106,11 +115,18 @@ namespace JsonParser
                 {
                     if (propertyInfo[i].CanRead)
                     {
-                        if (isFirst)
-                            isFirst = false;
-                        else
-                            stringBuilder.Append(',');
-                        AppendValue(stringBuilder, propertyInfo[i].GetValue(item));
+                        object value = propertyInfo[i].GetValue(item);
+                        if (value != null)
+                        {
+                            if (isFirst)
+                                isFirst = false;
+                            else
+                                stringBuilder.Append(',');
+                            stringBuilder.Append('\"');
+                            stringBuilder.Append(propertyInfo[i].Name);
+                            stringBuilder.Append("\":");
+                            AppendValue(stringBuilder, value);
+                        }
                     }
                 }
 

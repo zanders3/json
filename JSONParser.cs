@@ -31,7 +31,7 @@ namespace JsonParser
 
         public static T FromJson<T>(this string json)
         {
-            //Remove all whitespace not within quotes
+            //Remove all whitespace not within strings to make parsing simpler
             stringBuilder.Length = 0;
             bool insideString = false;
             for (int i = 0; i < json.Length; i++)
