@@ -1,12 +1,12 @@
 ﻿using System;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using JsonParser;
 using System.Collections.Generic;
 using System.Text;
+using NUnit.Framework;
 
 namespace JsonParserTests
 {
-    [TestClass]
+    [TestFixture]
     public class TestParser
     {
         static void Test<T>(T expected, string json)
@@ -15,7 +15,7 @@ namespace JsonParserTests
             Assert.AreEqual(expected, value);
         }
 
-        [TestMethod]
+        [Test]
         public void TestValues()
         {
             Test(12345, "12345");
@@ -36,7 +36,7 @@ namespace JsonParserTests
             CollectionAssert.AreEqual(expected, value);
         }
 
-        [TestMethod]
+        [Test]
         public void TestArrayOfValues()
         {
             ArrayTest(new string[] { "one", "two", "three" }, "[\"one\",\"two\",\"three\"]");
@@ -54,7 +54,7 @@ namespace JsonParserTests
             CollectionAssert.AreEqual(expected, value);
         }
 
-        [TestMethod]
+        [Test]
         public void TestListOfValues()
         {
             ListTest(new List<string> { "one", "two", "three" }, "[\"one\",\"two\",\"three\"]");
@@ -66,7 +66,7 @@ namespace JsonParserTests
             ListTest<object>(null, "[garbled");
         }
 
-        [TestMethod]
+        [Test]
         public void TestRecursiveLists()
         {
             var expected = new List<List<int>> { new List<int> { 1, 2 }, new List<int> { 3, 4 } };
@@ -76,7 +76,7 @@ namespace JsonParserTests
                 CollectionAssert.AreEqual(expected[i], actual[i]);
         }
 
-        [TestMethod]
+        [Test]
         public void TestRecursiveArrays()
         {
             var expected = new int[][] { new int[] { 1, 2 }, new int[] { 3, 4 } };
@@ -97,7 +97,7 @@ namespace JsonParserTests
             }
         }
 
-        [TestMethod]
+        [Test]
         public void TestDictionary()
         {
             DictTest(new Dictionary<string, int> { { "foo", 5 }, { "bar", 10 }, { "baz", 128 } }, "{\"foo\":5,\"bar\":10,\"baz\":128}");
@@ -107,7 +107,7 @@ namespace JsonParserTests
             DictTest(new Dictionary<string, string> { { "foo", "\"" }, { "bar", "hello" }, { "baz", "," } }, "{\"foo\":\"\\\"\",\"bar\":\"hello\",\"baz\":\",\"}");
         }
 
-        [TestMethod]
+        [Test]
         public void TestRecursiveDictionary()
         {
             var result = "{\"foo\":{ \"bar\":\"\\\"{,,:[]}\" }}".FromJson<Dictionary<string, Dictionary<string, string>>>();
@@ -122,7 +122,7 @@ namespace JsonParserTests
             public List<int> D { get; set; }
         }
 
-        [TestMethod]
+        [Test]
         public void TestSimpleObject()
         {
             SimpleObject value = "{\"A\":123,\"B\":456,\"C\":\"789\",\"D\":[10,11,12]}".FromJson<SimpleObject>();
@@ -141,7 +141,7 @@ namespace JsonParserTests
             public SimpleObject Obj;
         }
 
-        [TestMethod]
+        [Test]
         public void TestSimpleStruct()
         {
             SimpleStruct value = "{\"Obj\":{\"A\":12345}}".FromJson<SimpleStruct>();
@@ -154,7 +154,7 @@ namespace JsonParserTests
             public int Value;
         }
 
-        [TestMethod]
+        [Test]
         public void TestListOfStructs()
         {
             var values = "[{\"Value\":1},{\"Value\":2},{\"Value\":3}]".FromJson<List<TinyStruct>>();
@@ -169,7 +169,7 @@ namespace JsonParserTests
             public SimpleStruct C;
         }
 
-        [TestMethod]
+        [Test]
         public void TestDeepObject()
         {
             var value = "{\"A\":{\"A\":{\"A\":{}}}}".FromJson<TestObject2>();
@@ -197,7 +197,7 @@ namespace JsonParserTests
             public TestObject3 Z { get; set; }
         }
 
-        [TestMethod]
+        [Test]
         public void PerformanceTest()
         {
             StringBuilder builder = new StringBuilder();
@@ -217,12 +217,24 @@ namespace JsonParserTests
                 Assert.AreEqual(10, result[i].Z.F);
         }
 
-        [TestMethod]
+        [Test]
         public void CorruptionTest()
         {
             "{{{{{{[[[]]][[,,,,]],],],]]][[nulldsfoijsfd[[]]]]]]]]]}}}}}{{{{{{{{{D{FD{FD{F{{{{{}}}XXJJJI%&:,,,,,".FromJson<object>();
             "[[,[,,[,:::[[[[[[[".FromJson<List<List<int>>>();
             "{::,[][][],::::,}".FromJson<Dictionary<string, object>>();
+        }
+
+        [Test]
+        public void DynamicParserTest()
+        {
+            List<object> list = (List<object>)("[0,1,2,3]".FromJson<object>());
+            Assert.True(list.Count == 4 && (int)list[3] == 3);
+            Dictionary<string,object> obj = (Dictionary<string, object>)("{\"Foo\":\"Bar\"}".FromJson<object>());
+            Assert.True((string)obj["Foo"] == "Bar");
+
+            string testJson = "{\"A\":123,\"B\":456,\"C\":\"789\",\"D\":[10,11,12]}";
+            Assert.AreEqual(testJson, ((Dictionary<string,object>)testJson.FromJson<object>()).ToJson());
         }
     }
 }

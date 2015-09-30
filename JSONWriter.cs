@@ -115,7 +115,7 @@ namespace JsonParser
                 {
                     if (propertyInfo[i].CanRead)
                     {
-                        object value = propertyInfo[i].GetValue(item);
+                        object value = propertyInfo[i].GetValue(item, null);
                         if (value != null)
                         {
                             if (isFirst)

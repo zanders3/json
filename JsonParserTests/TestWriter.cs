@@ -1,13 +1,13 @@
 ﻿using JsonParser;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System.Collections.Generic;
+using NUnit.Framework;
 
 namespace JsonParserTests
 {
-    [TestClass]
+    [TestFixture]
     public class TestWriter
     {
-        [TestMethod]
+        [Test]
         public void TestValues()
         {
             Assert.AreEqual("123", 123.ToJson());
@@ -17,7 +17,7 @@ namespace JsonParserTests
             Assert.AreEqual("[1,2,3]", new List<int> { 1, 2, 3 }.ToJson());
         }
 
-        [TestMethod]
+        [Test]
         public void TestDicts()
         {
             Assert.AreEqual("{\"foo\":\"bar\"}", new Dictionary<string, string> { { "foo", "bar" } }.ToJson());
@@ -36,7 +36,7 @@ namespace JsonParserTests
             public SimpleObject A;
         }
 
-        [TestMethod]
+        [Test]
         public void TestObjects()
         {
             Assert.AreEqual("{\"A\":{},\"B\":[1,2,3],\"C\":\"Test\"}", new SimpleObject { A = new SimpleObject(), B = new List<int> { 1, 2, 3 }, C = "Test" }.ToJson());

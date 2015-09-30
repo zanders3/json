@@ -208,12 +208,66 @@ namespace JsonParser
                 }
                 return dictionary;
             }
+            else if (type == typeof(object))
+            {
+                return ParseAnonymousValue(json);
+            }    
             else if (json[0] == '{' && json[json.Length - 1] == '}')
             {
                 return ParseObject(type, json);
             }
 
             return null;
+        }
+
+        static object ParseAnonymousValue(string json)
+        {
+            if (json.Length == 0)
+                return null;
+            else if (json[0] == '{' && json[json.Length - 1] == '}')
+            {
+                List<string> elems = Split(json);
+                if (elems.Count % 2 != 0)
+                    return null;
+                Dictionary<string,object> dict = new Dictionary<string, object>(elems.Count / 2);
+                for (int i = 0; i < elems.Count; i += 2)
+                    dict.Add(elems[i].Substring(1, elems[i].Length - 2), ParseAnonymousValue(elems[i + 1]));
+                return dict;
+            }
+            else if (json[0] == '[' && json[json.Length - 1] == ']')
+            {
+                List<string> items = Split(json);
+                List<object> finalList = new List<object>(items.Count);
+                for (int i = 0; i < items.Count; i++)
+                    finalList.Add(ParseAnonymousValue(items[i]));
+                return finalList;
+            }
+            else if (json[0] == '\"' && json[json.Length - 1] == '\"')
+            {
+                string str = json.Substring(1, json.Length - 2);
+                return str.Replace("\\", string.Empty);
+            }
+            else if (char.IsDigit(json[0]) || json[0] == '-')
+            {
+                if (json.Contains("."))
+                {
+                    double result;
+                    double.TryParse(json, out result);
+                    return result;
+                }
+                else
+                {
+                    int result;
+                    int.TryParse(json, out result);
+                    return result;
+                }
+            }
+            else if (json == "true")
+                return true;
+            else if (json == "false")
+                return false;
+            else// handles json == "null" as well as invalid JSON
+                return null;
         }
 
         static object ParseObject(Type type, string json)
@@ -250,7 +304,7 @@ namespace JsonParser
                 if (nameToField.TryGetValue(key, out fieldInfo))
                     fieldInfo.SetValue(instance, ParseValue(fieldInfo.FieldType, value));
                 else if (nameToProperty.TryGetValue(key, out propertyInfo))
-                    propertyInfo.SetValue(instance, ParseValue(propertyInfo.PropertyType, value));
+                    propertyInfo.SetValue(instance, ParseValue(propertyInfo.PropertyType, value), null);
             }
 
             return instance;
