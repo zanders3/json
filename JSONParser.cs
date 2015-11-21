@@ -8,12 +8,15 @@ using System.Text;
 
 namespace JsonParser
 {
-    // Really simple JSON parser in ~250 lines
+    // Really simple JSON parser in ~300 lines
     // - Attempts to parse JSON files with minimal GC allocation
     // - Nice and simple "[1,2,3]".FromJson<List<int>>() API
     // - Classes and structs can be parsed too!
     //      class Foo { public int Value; }
     //      "{\"Value\":10}".FromJson<Foo>()
+    // - Can parse JSON without type information into Dictionary<string,object> and List<object> e.g.
+    //      "[1,2,3]".FromJson<object>().GetType() == typeof(List<object>)
+    //      "{\"Value\":10}".FromJson<object>().GetType() == typeof(Dictionary<string,object>)
     // - No JIT Emit support to support AOT compilation on iOS
     // - Attempts are made to NOT throw an exception if the JSON is corrupted or invalid: returns null instead.
     // - Only public fields and property setters on classes/structs will be written to
@@ -26,23 +29,22 @@ namespace JsonParser
     {
         static Stack<List<string>> splitArrayPool = new Stack<List<string>>();
         static StringBuilder stringBuilder = new StringBuilder();
-        static Dictionary<Type, Dictionary<string, FieldInfo>> fieldInfoCache = new Dictionary<Type, Dictionary<string, FieldInfo>>();
-        static Dictionary<Type, Dictionary<string, PropertyInfo>> propertyInfoCache = new Dictionary<Type, Dictionary<string, PropertyInfo>>();
+        static readonly Dictionary<Type, Dictionary<string, FieldInfo>> fieldInfoCache = new Dictionary<Type, Dictionary<string, FieldInfo>>();
+        static readonly Dictionary<Type, Dictionary<string, PropertyInfo>> propertyInfoCache = new Dictionary<Type, Dictionary<string, PropertyInfo>>();
 
         public static T FromJson<T>(this string json)
         {
             //Remove all whitespace not within strings to make parsing simpler
             stringBuilder.Length = 0;
-            bool insideString = false;
             for (int i = 0; i < json.Length; i++)
             {
                 char c = json[i];
                 if (c == '\"')
                 {
-                    i = AppendUntilStringEnd(true, stringBuilder, i, json);
+                    i = AppendUntilStringEnd(true, i, json);
                     continue;
                 }
-                else if (char.IsWhiteSpace(c) && !insideString)
+                if (char.IsWhiteSpace(c))
                     continue;
 
                 stringBuilder.Append(c);
@@ -52,7 +54,7 @@ namespace JsonParser
             return (T)ParseValue(typeof(T), stringBuilder.ToString());
         }
 
-        static int AppendUntilStringEnd(bool appendEscapeCharacter, StringBuilder stringBuilder, int startIdx, string json)
+        static int AppendUntilStringEnd(bool appendEscapeCharacter, int startIdx, string json)
         {
             stringBuilder.Append(json[startIdx]);
             for (int i = startIdx+1; i<json.Length; i++)
@@ -95,7 +97,7 @@ namespace JsonParser
                         parseDepth--;
                         break;
                     case '\"':
-                        i = AppendUntilStringEnd(true, stringBuilder, i, json);
+                        i = AppendUntilStringEnd(true, i, json);
                         continue;
                     case ',':
                     case ':':
@@ -116,7 +118,7 @@ namespace JsonParser
             return splitArray;
         }
 
-        static object ParseValue(Type type, string json)
+        internal static object ParseValue(Type type, string json)
         {
             if (type == typeof(string))
             {
@@ -125,33 +127,33 @@ namespace JsonParser
                 string str = json.Substring(1, json.Length - 2);
                 return str.Replace("\\", string.Empty);
             }
-            else if (type == typeof(int))
+            if (type == typeof(int))
             {
                 int result;
                 int.TryParse(json, out result);
                 return result;
             }
-            else if (type == typeof(float))
+            if (type == typeof(float))
             {
                 float result;
                 float.TryParse(json, out result);
                 return result;
             }
-            else if (type == typeof(double))
+            if (type == typeof(double))
             {
                 double result;
                 double.TryParse(json, out result);
                 return result;
             }
-            else if (type == typeof(bool))
+            if (type == typeof(bool))
             {
                 return json.ToLower() == "true";
             }
-            else if (json == "null")
+            if (json == "null")
             {
                 return null;
             }
-            else if (type.IsArray)
+            if (type.IsArray)
             {
                 Type arrayType = type.GetElementType();
                 if (json[0] != '[' || json[json.Length - 1] != ']')
@@ -164,20 +166,20 @@ namespace JsonParser
                 splitArrayPool.Push(elems);
                 return newArray;
             }
-            else if (type.IsGenericType && type.GetGenericTypeDefinition() == typeof(List<>))
+            if (type.IsGenericType && type.GetGenericTypeDefinition() == typeof(List<>))
             {
                 Type listType = type.GetGenericArguments()[0];
                 if (json[0] != '[' || json[json.Length - 1] != ']')
                     return null;
 
                 List<string> elems = Split(json);
-                IList list = (IList)type.GetConstructor(new Type[] { typeof(int) }).Invoke(new object[] { elems.Count });
+                var list = (IList)type.GetConstructor(new Type[] { typeof(int) }).Invoke(new object[] { elems.Count });
                 for (int i = 0; i < elems.Count; i++)
                     list.Add(ParseValue(listType, elems[i]));
                 splitArrayPool.Push(elems);
                 return list;
             }
-            else if (type.IsGenericType && type.GetGenericTypeDefinition() == typeof(Dictionary<,>))
+            if (type.IsGenericType && type.GetGenericTypeDefinition() == typeof(Dictionary<,>))
             {
                 Type keyType, valueType;
                 {
@@ -197,22 +199,22 @@ namespace JsonParser
                 if (elems.Count % 2 != 0)
                     return null;
 
-                IDictionary dictionary = (IDictionary)type.GetConstructor(new Type[] { typeof(int) }).Invoke(new object[] { elems.Count / 2 });
+                var dictionary = (IDictionary)type.GetConstructor(new Type[] { typeof(int) }).Invoke(new object[] { elems.Count / 2 });
                 for (int i = 0; i < elems.Count; i += 2)
                 {
                     if (elems[i].Length <= 2)
                         continue;
                     string keyValue = elems[i].Substring(1, elems[i].Length - 2);
-                    object value = ParseValue(valueType, elems[i + 1]);
-                    dictionary.Add(keyValue, value);
+                    object val = ParseValue(valueType, elems[i + 1]);
+                    dictionary.Add(keyValue, val);
                 }
                 return dictionary;
             }
-            else if (type == typeof(object))
+            if (type == typeof(object))
             {
                 return ParseAnonymousValue(json);
             }    
-            else if (json[0] == '{' && json[json.Length - 1] == '}')
+            if (json[0] == '{' && json[json.Length - 1] == '}')
             {
                 return ParseObject(type, json);
             }
@@ -224,30 +226,30 @@ namespace JsonParser
         {
             if (json.Length == 0)
                 return null;
-            else if (json[0] == '{' && json[json.Length - 1] == '}')
+            if (json[0] == '{' && json[json.Length - 1] == '}')
             {
                 List<string> elems = Split(json);
                 if (elems.Count % 2 != 0)
                     return null;
-                Dictionary<string,object> dict = new Dictionary<string, object>(elems.Count / 2);
+                var dict = new Dictionary<string, object>(elems.Count / 2);
                 for (int i = 0; i < elems.Count; i += 2)
                     dict.Add(elems[i].Substring(1, elems[i].Length - 2), ParseAnonymousValue(elems[i + 1]));
                 return dict;
             }
-            else if (json[0] == '[' && json[json.Length - 1] == ']')
+            if (json[0] == '[' && json[json.Length - 1] == ']')
             {
                 List<string> items = Split(json);
-                List<object> finalList = new List<object>(items.Count);
+                var finalList = new List<object>(items.Count);
                 for (int i = 0; i < items.Count; i++)
                     finalList.Add(ParseAnonymousValue(items[i]));
                 return finalList;
             }
-            else if (json[0] == '\"' && json[json.Length - 1] == '\"')
+            if (json[0] == '\"' && json[json.Length - 1] == '\"')
             {
                 string str = json.Substring(1, json.Length - 2);
                 return str.Replace("\\", string.Empty);
             }
-            else if (char.IsDigit(json[0]) || json[0] == '-')
+            if (char.IsDigit(json[0]) || json[0] == '-')
             {
                 if (json.Contains("."))
                 {
@@ -262,12 +264,12 @@ namespace JsonParser
                     return result;
                 }
             }
-            else if (json == "true")
+            if (json == "true")
                 return true;
-            else if (json == "false")
+            if (json == "false")
                 return false;
-            else// handles json == "null" as well as invalid JSON
-                return null;
+            // handles json == "null" as well as invalid JSON
+            return null;
         }
 
         static object ParseObject(Type type, string json)
