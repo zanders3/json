@@ -1,5 +1,11 @@
-# json
-Really simple JSON parser in ~250 lines
+# Tiny Json
+
+[![Build Status](https://travis-ci.org/zanders3/json.png?branch=master)](https://travis-ci.org/zanders3/json)
+[![License](https://img.shields.io/badge/license-MIT-lightgrey.svg)](https://raw.githubusercontent.com/zanders3/json/master/LICENSE)
+[![Nuget Version](https://img.shields.io/nuget/v/TinyJson.svg)](https://www.nuget.org/packages/TinyJson)
+[![Nuget Downloads](https://img.shields.io/nuget/dt/TinyJson.svg)](https://www.nuget.org/packages/TinyJson)
+
+A really simple C# JSON parser in ~250 lines
 - Attempts to parse JSON files with minimal GC allocation
 - Nice and simple `"[1,2,3]".FromJson<List<int>>()` API
 - Classes and structs can be parsed too!

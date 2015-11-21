@@ -1,8 +1,8 @@
-﻿using JsonParser;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using NUnit.Framework;
+using TinyJson;
 
-namespace JsonParserTests
+namespace TinyJson.Test
 {
     [TestFixture]
     public class TestWriter

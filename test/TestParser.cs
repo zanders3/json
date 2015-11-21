@@ -1,10 +1,10 @@
 ﻿using System;
-using JsonParser;
 using System.Collections.Generic;
 using System.Text;
 using NUnit.Framework;
+using TinyJson;
 
-namespace JsonParserTests
+namespace TinyJson.Test
 {
     [TestFixture]
     public class TestParser
