@@ -6,7 +6,7 @@ using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace JsonParser
+namespace TinyJson
 {
     //Really simple JSON writer
     //- Outputs JSON structures from an object
