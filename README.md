@@ -18,7 +18,7 @@ class Foo
 ```
 - Anonymous JSON is parsed into `Dictionary<string,object>` and `List<object>`
 ```csharp
-var test = "{\"Value\:10}".FromJson<object>();
+var test = "{\"Value\":10}".FromJson<object>();
 int number = ((Dictionary<string,object>)test)["Value"];
 ```
 - No JIT Emit support to support AOT compilation on iOS
