@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<package >
+  <metadata>
+    <id>TinyJson</id>
+    <title>TinyJson</title>
+    <version>0.9.1</version>
+    <authors>Alex Parker</authors>
+    <owners>Alex Parker</owners>
+    <licenseUrl>https://raw.githubusercontent.com/zanders3/json/master/LICENSE</licenseUrl>
+    <projectUrl>https://github.com/zanders3/json</projectUrl>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <description>A really simple C# JSON parser.</description>
+    <copyright>Copyright 2015</copyright>
+    <tags>Json Serialisation</tags>
+  </metadata>
+  <files>
+    <file src="bin/TinyJson.dll" target="lib" />
+    <file src="bin/TinyJson.xml" target="lib" />
+  </files>
+</package>
