@@ -16,6 +16,11 @@ class Foo
 }
 "{\"Value\":10}".FromJson<Foo>()
 ```
+- Anonymous JSON is parsed into `Dictionary<string,object>` and `List<object>`
+```csharp
+var test = "{\"Value\:10}".FromJson<object>();
+int number = ((Dictionary<string,object>)test)["Value"];
+```
 - No JIT Emit support to support AOT compilation on iOS
 - Attempts are made to NOT throw an exception if the JSON is corrupted or invalid: returns null instead.
 - Only public fields and property setters on classes/structs will be written to
