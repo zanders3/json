@@ -29,3 +29,30 @@ Limitations:
 - No JIT Emit support to parse structures quickly
 - Limited to parsing <2GB JSON files (due to int.MaxValue)
 - Parsing of abstract classes or interfaces is NOT supported and will throw an exception.
+
+## Example Usage
+
+This example will write a list of 100 ints to a File and read it back again:
+```csharp
+using System;
+using System.IO;
+using System.Collections.Generic;
+
+using TinyJson;
+
+public static class JsonTest
+{
+  public static void Main(string[] args)
+  {
+    //Write a file
+    List<int> values = new List<int> { 1, 2, 3, 4, 5, 6 };
+    string json = values.ToJson();
+    File.WriteAllText("test.json", json);
+    
+    //Read it back
+    string fileJson = File.ReadAllText("test.json");
+    List<int> fileValues = fileJson.FromJson<List<int>>();
+  }
+}
+```
+Save this as `JsonTest.cs` then compile and run with `mcs JsonTest.cs && mono JsonTest.exe`
