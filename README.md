@@ -5,7 +5,7 @@
 [![Nuget Version](https://img.shields.io/nuget/v/TinyJson.svg)](https://www.nuget.org/packages/TinyJson)
 [![Nuget Downloads](https://img.shields.io/nuget/dt/TinyJson.svg)](https://www.nuget.org/packages/TinyJson)
 
-A really simple C# JSON parser in ~250 lines
+A really simple C# JSON parser in ~300 lines
 - Attempts to parse JSON files with minimal GC allocation
 - Nice and simple `"[1,2,3]".FromJson<List<int>>()` API
 - Classes and structs can be parsed too!
@@ -32,7 +32,7 @@ Limitations:
 
 ## Example Usage
 
-This example will write a list of 100 ints to a File and read it back again:
+This example will write a list of ints to a File and read it back again:
 ```csharp
 using System;
 using System.IO;
