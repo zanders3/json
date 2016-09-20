@@ -33,7 +33,7 @@ namespace TinyJson
             if (type == typeof(string))
             {
                 stringBuilder.Append('\"');
-                stringBuilder.Append((string)item);
+                stringBuilder.Append(((string)item).Replace("\\", "\\\\"));
                 stringBuilder.Append('\"');
             }
             else if (type == typeof(int) || type == typeof(float) || type == typeof(double))
