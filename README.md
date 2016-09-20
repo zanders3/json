@@ -2,7 +2,7 @@
 
 [![Build Status](https://travis-ci.org/zanders3/json.png?branch=master)](https://travis-ci.org/zanders3/json)
 [![License](https://img.shields.io/badge/license-MIT-lightgrey.svg)](https://raw.githubusercontent.com/zanders3/json/master/LICENSE)
-[![NuGet](https://img.shields.io/nuget/v/Nuget.Core.svg?maxAge=2592000)](https://www.nuget.org/packages/TinyJson)
+[![NuGet](https://img.shields.io/nuget/v/TinyJson.svg)](https://www.nuget.org/packages/TinyJson)
 
 A really simple C# JSON parser in ~300 lines
 - Attempts to parse JSON files with minimal GC allocation
