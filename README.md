@@ -2,8 +2,7 @@
 
 [![Build Status](https://travis-ci.org/zanders3/json.png?branch=master)](https://travis-ci.org/zanders3/json)
 [![License](https://img.shields.io/badge/license-MIT-lightgrey.svg)](https://raw.githubusercontent.com/zanders3/json/master/LICENSE)
-[![Nuget Version](https://img.shields.io/nuget/v/TinyJson.svg)](https://www.nuget.org/packages/TinyJson)
-[![Nuget Downloads](https://img.shields.io/nuget/dt/TinyJson.svg)](https://www.nuget.org/packages/TinyJson)
+[![NuGet](https://img.shields.io/nuget/v/Nuget.Core.svg?maxAge=2592000)](https://www.nuget.org/packages/TinyJson)
 
 A really simple C# JSON parser in ~300 lines
 - Attempts to parse JSON files with minimal GC allocation
@@ -56,3 +55,8 @@ public static class JsonTest
 }
 ```
 Save this as `JsonTest.cs` then compile and run with `mcs JsonTest.cs && mono JsonTest.exe`
+
+## Installation
+
+Simply copy and paste the [JSON Parser](https://raw.githubusercontent.com/zanders3/json/master/src/JSONParser.cs) and/or the [JSON Writer](https://raw.githubusercontent.com/zanders3/json/master/src/JSONWriter.cs) or use [Nuget](https://www.nuget.org/packages/TinyJson)
+
