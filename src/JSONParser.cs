@@ -125,7 +125,7 @@ namespace TinyJson
                 if (json.Length <= 2)
                     return string.Empty;
                 string str = json.Substring(1, json.Length - 2);
-                return str.Replace("\\", string.Empty);
+                return str.Replace("\\\\", "\"\"").Replace("\\", string.Empty).Replace("\"\"", "\\");
             }
             if (type == typeof(int))
             {
