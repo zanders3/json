@@ -81,6 +81,8 @@ namespace TinyJson
         static List<string> Split(string json)
         {
             List<string> splitArray = splitArrayPool.Count > 0 ? splitArrayPool.Pop() : new List<string>();
+            if(json.Length == 2)
+                return splitArray;
             splitArray.Clear();
             int parseDepth = 0;
             stringBuilder.Length = 0;
