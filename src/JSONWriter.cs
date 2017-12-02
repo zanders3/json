@@ -31,9 +31,12 @@ namespace TinyJson
             Type type = item.GetType();
             if (type == typeof(string))
             {
-                stringBuilder.Append('\"');
-                stringBuilder.Append(((string)item).Replace("\\", "\\\\"));
-                stringBuilder.Append('\"');
+                stringBuilder.Append('"');
+                var itemstr = (string)item;
+                foreach(var esc in new string[]{"\\\\\\", "\"\\\"", "\b\\b", "\f\\f", "\t\\t", "\n\\n", "\r\\r", "\0\\0"})
+                    itemstr = itemstr.Replace(esc.Substring(0,1), esc.Substring(1));
+                stringBuilder.Append(itemstr);
+                stringBuilder.Append('"');
             }
             else if (type == typeof(int) || type == typeof(float) || type == typeof(double))
             {
