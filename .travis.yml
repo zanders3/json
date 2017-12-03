@@ -1,9 +1,7 @@
 language: csharp
 sudo: false
-mono:
-  - latest
-before_script:
-  - sh nu.sh
+mono: none
+dotnet: latest
+dist: trusty
 script:
-  - sh build.sh
-  - sh test.sh
+  - dotnet test
