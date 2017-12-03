@@ -1,0 +1,16 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>netcoreapp2.0</TargetFramework>
+    <IsPackable>true</IsPackable>
+    <PackageId>TinyJson</PackageId>
+    <Title>TinyJson</Title>
+    <PackageVersion>1.0.0</PackageVersion>
+    <Authors>Alex Parker</Authors>
+    <PackageLicenseUrl>https://raw.githubusercontent.com/zanders3/json/master/LICENSE</PackageLicenseUrl>
+    <PackageProjectUrl>https://github.com/zanders3/json</PackageProjectUrl>
+    <description>A really simple C# JSON parser.</description>
+    <Copyright>Copyright 2017</Copyright>
+    <PackageTags>Json;Serialisation</PackageTags>
+    <RepositoryUrl>https://github.com/zanders3/json</RepositoryUrl>
+  </PropertyGroup>
+</Project>
