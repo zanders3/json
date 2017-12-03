@@ -4,4 +4,4 @@ mono: none
 dotnet: 2.0.3
 dist: trusty
 script:
-  - dotnet test
+  - dotnet test test/jsontest.csproj 
