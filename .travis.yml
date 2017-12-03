@@ -1,7 +1,7 @@
 language: csharp
 sudo: false
 mono: none
-dotnet: latest
+dotnet: 2.0.3
 dist: trusty
 script:
   - dotnet test
