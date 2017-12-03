@@ -58,5 +58,10 @@ Save this as `JsonTest.cs` then compile and run with `mcs JsonTest.cs && mono Js
 
 ## Installation
 
-Simply copy and paste the [JSON Parser](https://raw.githubusercontent.com/zanders3/json/master/src/JSONParser.cs) and/or the [JSON Writer](https://raw.githubusercontent.com/zanders3/json/master/src/JSONWriter.cs) or use [Nuget](https://www.nuget.org/packages/TinyJson)
+Simply copy and paste the [JSON Parser](https://raw.githubusercontent.com/zanders3/json/master/src/JSONParser.cs) and/or the [JSON Writer](https://raw.githubusercontent.com/zanders3/json/master/src/JSONWriter.cs) into your project. I also provide NuGet but I recommend the copy paste route ;)
 
+## Unit Tests
+
+You can use dotnet to build and run the unit tests:
+
+  dotnet test

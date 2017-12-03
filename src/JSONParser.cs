@@ -126,13 +126,58 @@ namespace TinyJson
             {
                 if (json.Length <= 2)
                     return string.Empty;
-                string str = json.Substring(1, json.Length - 2);
-                return str.Replace("\\\\", "\"\"").Replace("\\", string.Empty).Replace("\"\"", "\\");
+                StringBuilder stringBuilder = new StringBuilder();
+                for (int i = 1; i<json.Length-1; ++i)
+                {
+                    if (json[i] == '\\' && i + 1 < json.Length - 1)
+                    {
+                        switch (json[i+1])
+                        {
+                            case '"':
+                                stringBuilder.Append('"');
+                                break;
+                            case '\\':
+                                stringBuilder.Append("\\");
+                                break;
+                            case 'b':
+                                stringBuilder.Append("\b");
+                                break;
+                            case 'f':
+                                stringBuilder.Append("\f");
+                                break;
+                            case 't':
+                                stringBuilder.Append("\t");
+                                break;
+                            case 'n':
+                                stringBuilder.Append("\n");
+                                break;
+                            case 'r':
+                                stringBuilder.Append("\r");
+                                break;
+                            case '0':
+                                stringBuilder.Append("\0");
+                                break;
+                            default:
+                                stringBuilder.Append(json[i]);
+                                break;
+                        }
+                        ++i;
+                    }
+                    else
+                        stringBuilder.Append(json[i]);
+                }
+                return stringBuilder.ToString();
             }
             if (type == typeof(int))
             {
                 int result;
                 int.TryParse(json, out result);
+                return result;
+            }
+            if (type == typeof(byte))
+            {
+                byte result;
+                byte.TryParse(json, out result);
                 return result;
             }
             if (type == typeof(float))

@@ -31,11 +31,42 @@ namespace TinyJson
             Type type = item.GetType();
             if (type == typeof(string))
             {
-                stringBuilder.Append('\"');
-                stringBuilder.Append(((string)item).Replace("\\", "\\\\"));
-                stringBuilder.Append('\"');
+                stringBuilder.Append('"');
+                string str = (string)item;
+                for (int i = 0; i<str.Length; ++i)
+                    switch (str[i])
+                    {
+                        case '\\':
+                            stringBuilder.Append("\\\\");
+                            break;
+                        case '\"':
+                            stringBuilder.Append("\\\"");
+                            break;
+                        case '\b':
+                            stringBuilder.Append("\\b");
+                            break;
+                        case '\f':
+                            stringBuilder.Append("\\f");
+                            break;
+                        case '\t':
+                            stringBuilder.Append("\\t");
+                            break;
+                        case '\n':
+                            stringBuilder.Append("\\n");
+                            break;
+                        case '\r':
+                            stringBuilder.Append("\\r");
+                            break;
+                        case '\0':
+                            stringBuilder.Append("\\0");
+                            break;
+                        default:
+                            stringBuilder.Append(str[i]);
+                            break;
+                    }
+                stringBuilder.Append('"');
             }
-            else if (type == typeof(int) || type == typeof(float) || type == typeof(double))
+            else if (type == typeof(byte) || type == typeof(int) || type == typeof(float) || type == typeof(double))
             {
                 stringBuilder.Append(item.ToString());
             }
@@ -93,7 +124,7 @@ namespace TinyJson
                 FieldInfo[] fieldInfos = type.GetFields();
                 for (int i = 0; i < fieldInfos.Length; i++)
                 {
-                    if (fieldInfos[i].IsPublic)
+                    if (fieldInfos[i].IsPublic && !fieldInfos[i].IsStatic)
                     {
                         object value = fieldInfos[i].GetValue(item);
                         if (value != null)
