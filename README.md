@@ -64,4 +64,4 @@ Simply copy and paste the [JSON Parser](https://raw.githubusercontent.com/zander
 
 You can use dotnet to build and run the unit tests:
 
-  dotnet test
+    dotnet test
