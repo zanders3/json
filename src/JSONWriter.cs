@@ -66,9 +66,17 @@ namespace TinyJson
                     }
                 stringBuilder.Append('"');
             }
-            else if (type == typeof(byte) || type == typeof(int) || type == typeof(float) || type == typeof(double))
+            else if (type == typeof(byte) || type == typeof(int))
             {
                 stringBuilder.Append(item.ToString());
+            }
+            else if (type == typeof(float))
+            {
+                stringBuilder.Append(((float)item).ToString(System.Globalization.CultureInfo.InvariantCulture));
+            }
+            else if (type == typeof(double))
+            {
+                stringBuilder.Append(((double)item).ToString(System.Globalization.CultureInfo.InvariantCulture));
             }
             else if (type == typeof(bool))
             {

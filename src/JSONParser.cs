@@ -183,13 +183,13 @@ namespace TinyJson
             if (type == typeof(float))
             {
                 float result;
-                float.TryParse(json, out result);
+                float.TryParse(json, System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out result);
                 return result;
             }
             if (type == typeof(double))
             {
                 double result;
-                double.TryParse(json, out result);
+                double.TryParse(json, System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out result);
                 return result;
             }
             if (type == typeof(bool))
@@ -301,7 +301,7 @@ namespace TinyJson
                 if (json.Contains("."))
                 {
                     double result;
-                    double.TryParse(json, out result);
+                    double.TryParse(json, System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out result);
                     return result;
                 }
                 else
