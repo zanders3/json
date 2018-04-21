@@ -259,8 +259,8 @@ namespace TinyJson.Test
         [TestMethod]
         public void TestEscaping()
         {
-            var orig = new Dictionary<string,string>{{"hello", "world\n \" \\ \b \r \0"}};
-            var parsed = "{\"hello\":\"world\\n \\\" \\\\ \\b \\r \\0\"}".FromJson<Dictionary<string,string>>();
+            var orig = new Dictionary<string,string>{{"hello", "world\n \" \\ \b \r \\0\u263A" } };
+            var parsed = "{\"hello\":\"world\\n \\\" \\\\ \\b \\r \\0\\u263a\"}".FromJson<Dictionary<string,string>>();
             Assert.AreEqual(orig["hello"], parsed["hello"]);
         }
     }

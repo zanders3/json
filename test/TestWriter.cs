@@ -62,8 +62,8 @@ namespace TinyJson.Test
         [TestMethod]
         public void TestEscaping()
         {
-            Assert.AreEqual("{\"hello\":\"world\\n \\\\ \\\" \\b \\r \\0\"}", new Dictionary<string,string>{
-                {"hello", "world\n \\ \" \b \r \0"}
+            Assert.AreEqual("{\"hello\":\"world\\n \\\\ \\\" \\b \\r \\u0000\u263A\"}", new Dictionary<string,string>{
+                {"hello", "world\n \\ \" \b \r \0\u263A"}
             }.ToJson());
         }
     }
