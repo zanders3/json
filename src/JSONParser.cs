@@ -39,7 +39,7 @@ namespace TinyJson
             for (int i = 0; i < json.Length; i++)
             {
                 char c = json[i];
-                if (c == '\"')
+                if (c == '"')
                 {
                     i = AppendUntilStringEnd(true, i, json);
                     continue;
@@ -66,7 +66,7 @@ namespace TinyJson
                     stringBuilder.Append(json[i + 1]);
                     i++;//Skip next character as it is escaped
                 }
-                else if (json[i] == '\"')
+                else if (json[i] == '"')
                 {
                     stringBuilder.Append(json[i]);
                     return i;
@@ -98,7 +98,7 @@ namespace TinyJson
                     case '}':
                         parseDepth--;
                         break;
-                    case '\"':
+                    case '"':
                         i = AppendUntilStringEnd(true, i, json);
                         continue;
                     case ',':
@@ -131,40 +131,25 @@ namespace TinyJson
                 {
                     if (json[i] == '\\' && i + 1 < json.Length - 1)
                     {
-                        switch (json[i+1])
+                        int j = "\"\\nrtbf/".IndexOf(json[i + 1]);
+                        if (j >= 0)
                         {
-                            case '"':
-                                stringBuilder.Append('"');
-                                break;
-                            case '\\':
-                                stringBuilder.Append("\\");
-                                break;
-                            case 'b':
-                                stringBuilder.Append("\b");
-                                break;
-                            case 'f':
-                                stringBuilder.Append("\f");
-                                break;
-                            case 't':
-                                stringBuilder.Append("\t");
-                                break;
-                            case 'n':
-                                stringBuilder.Append("\n");
-                                break;
-                            case 'r':
-                                stringBuilder.Append("\r");
-                                break;
-                            case '0':
-                                stringBuilder.Append("\0");
-                                break;
-                            default:
-                                stringBuilder.Append(json[i]);
-                                break;
+                            stringBuilder.Append("\"\\\n\r\t\b\f/"[j]);
+                            ++i;
+                            continue;
                         }
-                        ++i;
+                        if (json[i + 1] == 'u' && i + 5 < json.Length - 1)
+                        {
+                            UInt32 c = 0;
+                            if (UInt32.TryParse(json.Substring(i + 2, 4), System.Globalization.NumberStyles.AllowHexSpecifier, null, out c))
+                            {
+                                stringBuilder.Append((char)c);
+                                i += 5;
+                                continue;
+                            }
+                        }
                     }
-                    else
-                        stringBuilder.Append(json[i]);
+                    stringBuilder.Append(json[i]);
                 }
                 return stringBuilder.ToString();
             }
@@ -291,7 +276,7 @@ namespace TinyJson
                     finalList.Add(ParseAnonymousValue(items[i]));
                 return finalList;
             }
-            if (json[0] == '\"' && json[json.Length - 1] == '\"')
+            if (json[0] == '"' && json[json.Length - 1] == '"')
             {
                 string str = json.Substring(1, json.Length - 2);
                 return str.Replace("\\", string.Empty);

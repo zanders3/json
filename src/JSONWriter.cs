@@ -34,36 +34,17 @@ namespace TinyJson
                 stringBuilder.Append('"');
                 string str = (string)item;
                 for (int i = 0; i<str.Length; ++i)
-                    switch (str[i])
+                    if (str[i] < ' ' || str[i] == '"' || str[i] == '\\')
                     {
-                        case '\\':
-                            stringBuilder.Append("\\\\");
-                            break;
-                        case '\"':
-                            stringBuilder.Append("\\\"");
-                            break;
-                        case '\b':
-                            stringBuilder.Append("\\b");
-                            break;
-                        case '\f':
-                            stringBuilder.Append("\\f");
-                            break;
-                        case '\t':
-                            stringBuilder.Append("\\t");
-                            break;
-                        case '\n':
-                            stringBuilder.Append("\\n");
-                            break;
-                        case '\r':
-                            stringBuilder.Append("\\r");
-                            break;
-                        case '\0':
-                            stringBuilder.Append("\\0");
-                            break;
-                        default:
-                            stringBuilder.Append(str[i]);
-                            break;
+                        stringBuilder.Append('\\');
+                        int j = "\"\\\n\r\t\b\f".IndexOf(str[i]);
+                        if (j >= 0)
+                            stringBuilder.Append("\"\\nrtbf"[j]);
+                        else
+                            stringBuilder.AppendFormat("u{0:X4}", (UInt32)str[i]);
                     }
+                    else
+                        stringBuilder.Append(str[i]);
                 stringBuilder.Append('"');
             }
             else if (type == typeof(byte) || type == typeof(int))
