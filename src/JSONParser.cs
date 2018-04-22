@@ -27,13 +27,19 @@ namespace TinyJson
     // - Parsing of abstract classes or interfaces is NOT supported and will throw an exception.
     public static class JSONParser
     {
-        static Stack<List<string>> splitArrayPool = new Stack<List<string>>();
-        static StringBuilder stringBuilder = new StringBuilder();
-        static readonly Dictionary<Type, Dictionary<string, FieldInfo>> fieldInfoCache = new Dictionary<Type, Dictionary<string, FieldInfo>>();
-        static readonly Dictionary<Type, Dictionary<string, PropertyInfo>> propertyInfoCache = new Dictionary<Type, Dictionary<string, PropertyInfo>>();
+        [ThreadStatic] static Stack<List<string>> splitArrayPool;
+        [ThreadStatic] static StringBuilder stringBuilder;
+        [ThreadStatic] static Dictionary<Type, Dictionary<string, FieldInfo>> fieldInfoCache;
+        [ThreadStatic] static Dictionary<Type, Dictionary<string, PropertyInfo>> propertyInfoCache;
 
         public static T FromJson<T>(this string json)
         {
+            // Initialize, if needed, the ThreadStatic variables
+            if (null == propertyInfoCache) propertyInfoCache = new Dictionary<Type, Dictionary<string, PropertyInfo>>();
+            if (null == fieldInfoCache) fieldInfoCache = new Dictionary<Type, Dictionary<string, FieldInfo>>();
+            if (null == stringBuilder) stringBuilder = new StringBuilder();
+            if (null == splitArrayPool) splitArrayPool = new Stack<List<string>>();
+
             //Remove all whitespace not within strings to make parsing simpler
             stringBuilder.Length = 0;
             for (int i = 0; i < json.Length; i++)
