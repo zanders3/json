@@ -27,44 +27,19 @@ namespace TinyJson
     // - Parsing of abstract classes or interfaces is NOT supported and will throw an exception.
     public static class JSONParser
     {
-        [ThreadStatic]
-        static Stack<List<string>> _splitArrayPool;
-        static Stack<List<string>> splitArrayPool {
-            get {
-                if (null == _splitArrayPool) _splitArrayPool = new Stack<List<string>>();
-                return _splitArrayPool;
-            }
-        }
-
-        [ThreadStatic]
-        static StringBuilder _stringBuilder;
-        static StringBuilder stringBuilder {
-            get {
-                if (null == _stringBuilder) _stringBuilder = new StringBuilder();
-                return _stringBuilder;
-            }
-        }
-
-        [ThreadStatic]
-        static Dictionary<Type, Dictionary<string, FieldInfo>> _fieldInfoCache;
-        static Dictionary<Type, Dictionary<string, FieldInfo>> fieldInfoCache {
-            get {
-                if (null == _fieldInfoCache) _fieldInfoCache = new Dictionary<Type, Dictionary<string, FieldInfo>>();
-                return _fieldInfoCache;
-            }
-        }
-
-        [ThreadStatic]
-        static Dictionary<Type, Dictionary<string, PropertyInfo>> _propertyInfoCache;
-        static Dictionary<Type, Dictionary<string, PropertyInfo>> propertyInfoCache {
-            get {
-                if (null == _propertyInfoCache) _propertyInfoCache = new Dictionary<Type, Dictionary<string, PropertyInfo>>();
-                return _propertyInfoCache;
-            }
-        }
+        [ThreadStatic] static Stack<List<string>> splitArrayPool;
+        [ThreadStatic] static StringBuilder stringBuilder;
+        [ThreadStatic] static Dictionary<Type, Dictionary<string, FieldInfo>> fieldInfoCache;
+        [ThreadStatic] static Dictionary<Type, Dictionary<string, PropertyInfo>> propertyInfoCache;
 
         public static T FromJson<T>(this string json)
         {
+            // Initialize, if needed, the ThreadStatic variables
+            if (null == propertyInfoCache) propertyInfoCache = new Dictionary<Type, Dictionary<string, PropertyInfo>>();
+            if (null == fieldInfoCache) fieldInfoCache = new Dictionary<Type, Dictionary<string, FieldInfo>>();
+            if (null == stringBuilder) stringBuilder = new StringBuilder();
+            if (null == splitArrayPool) splitArrayPool = new Stack<List<string>>();
+
             //Remove all whitespace not within strings to make parsing simpler
             stringBuilder.Length = 0;
             for (int i = 0; i < json.Length; i++)
