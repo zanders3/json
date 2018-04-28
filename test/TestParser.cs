@@ -291,5 +291,20 @@ namespace TinyJson.Test
 				}).Start();
 			}
 		}
+
+
+
+
+        [TestMethod]
+        public void TestMyModel()
+        {
+            jsontest.DataModel _data = new jsontest.DataModel() { Name = "saied", Id = 33 };
+            jsontest.TestModel<jsontest.DataModel> _item = new jsontest.TestModel<jsontest.DataModel>() { Name = "my container", Data = _data };
+
+            string json = TinyJson.JSONWriter.ToJson(_item);
+
+            jsontest.TestModel<jsontest.DataModel> _item2 = TinyJson.JSONParser.FromJson<jsontest.TestModel<jsontest.DataModel>>(json);
+        }
+
     }
 }

@@ -63,7 +63,7 @@ namespace TinyJson
         static int AppendUntilStringEnd(bool appendEscapeCharacter, int startIdx, string json)
         {
             stringBuilder.Append(json[startIdx]);
-            for (int i = startIdx+1; i<json.Length; i++)
+            for (int i = startIdx + 1; i < json.Length; i++)
             {
                 if (json[i] == '\\')
                 {
@@ -88,11 +88,11 @@ namespace TinyJson
         {
             List<string> splitArray = splitArrayPool.Count > 0 ? splitArrayPool.Pop() : new List<string>();
             splitArray.Clear();
-            if(json.Length == 2)
+            if (json.Length == 2)
                 return splitArray;
             int parseDepth = 0;
             stringBuilder.Length = 0;
-            for (int i = 1; i<json.Length-1; i++)
+            for (int i = 1; i < json.Length - 1; i++)
             {
                 switch (json[i])
                 {
@@ -133,7 +133,7 @@ namespace TinyJson
                 if (json.Length <= 2)
                     return string.Empty;
                 StringBuilder stringBuilder = new StringBuilder();
-                for (int i = 1; i<json.Length-1; ++i)
+                for (int i = 1; i < json.Length - 1; ++i)
                 {
                     if (json[i] == '\\' && i + 1 < json.Length - 1)
                     {
@@ -159,31 +159,31 @@ namespace TinyJson
                 }
                 return stringBuilder.ToString();
             }
-            if (type == typeof(int))
+            if (type == typeof(int) || type == typeof(int?))
             {
                 int result;
                 int.TryParse(json, out result);
                 return result;
             }
-            if (type == typeof(byte))
+            if (type == typeof(byte) || type == typeof(byte?))
             {
                 byte result;
                 byte.TryParse(json, out result);
                 return result;
             }
-            if (type == typeof(float))
+            if (type == typeof(float) || type == typeof(float?))
             {
                 float result;
                 float.TryParse(json, System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out result);
                 return result;
             }
-            if (type == typeof(double))
+            if (type == typeof(double) || type == typeof(double?))
             {
                 double result;
                 double.TryParse(json, System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out result);
                 return result;
             }
-            if (type == typeof(bool))
+            if (type == typeof(bool) || type == typeof(bool?))
             {
                 return json.ToLower() == "true";
             }
@@ -251,7 +251,7 @@ namespace TinyJson
             if (type == typeof(object))
             {
                 return ParseAnonymousValue(json);
-            }    
+            }
             if (json[0] == '{' && json[json.Length - 1] == '}')
             {
                 return ParseObject(type, json);
@@ -332,12 +332,27 @@ namespace TinyJson
                 propertyInfoCache.Add(type, nameToProperty);
             }
 
+
+
+
             for (int i = 0; i < elems.Count; i += 2)
             {
                 if (elems[i].Length <= 2)
                     continue;
+
+
                 string key = elems[i].Substring(1, elems[i].Length - 2);
                 string value = elems[i + 1];
+
+
+                foreach (KeyValuePair<string, PropertyInfo> infoDic in nameToProperty.ToList())
+                {
+                    JsonPropertyAttribute jsonPropertyAttribute = (JsonPropertyAttribute)infoDic.Value.GetCustomAttribute(typeof(JsonPropertyAttribute), false);
+                    if (jsonPropertyAttribute != null && jsonPropertyAttribute.Name == key)
+                        key = infoDic.Value.Name;
+                }
+                //string attributeName = ReadJsonPropertyValue(type, key);
+
 
                 FieldInfo fieldInfo;
                 PropertyInfo propertyInfo;

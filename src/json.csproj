@@ -12,5 +12,6 @@
     <Copyright>Copyright 2017</Copyright>
     <PackageTags>Json;Serialisation</PackageTags>
     <RepositoryUrl>https://github.com/zanders3/json</RepositoryUrl>
+    <RootNamespace>TinyJson</RootNamespace>
   </PropertyGroup>
 </Project>
