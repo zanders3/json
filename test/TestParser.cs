@@ -87,7 +87,7 @@ namespace TinyJson.Test
                 CollectionAssert.AreEqual(expected[i], actual[i]);
         }
 
-        static void DictTest<K,V>(Dictionary<K,V> expected, string json)
+        static void DictTest<K, V>(Dictionary<K, V> expected, string json)
         {
             var value = json.FromJson<Dictionary<K, V>>();
             Assert.AreEqual(expected.Count, value.Count);
@@ -204,10 +204,10 @@ namespace TinyJson.Test
             StringBuilder builder = new StringBuilder();
             builder.Append("[");
             const int numTests = 100000;
-            for (int i = 0; i<numTests; i++)
+            for (int i = 0; i < numTests; i++)
             {
                 builder.Append("{\"Z\":{\"F\":10}}");
-                if (i < numTests-1)
+                if (i < numTests - 1)
                     builder.Append(",");
             }
             builder.Append("]");
@@ -231,11 +231,11 @@ namespace TinyJson.Test
         {
             List<object> list = (List<object>)("[0,1,2,3]".FromJson<object>());
             Assert.IsTrue(list.Count == 4 && (int)list[3] == 3);
-            Dictionary<string,object> obj = (Dictionary<string, object>)("{\"Foo\":\"Bar\"}".FromJson<object>());
+            Dictionary<string, object> obj = (Dictionary<string, object>)("{\"Foo\":\"Bar\"}".FromJson<object>());
             Assert.IsTrue((string)obj["Foo"] == "Bar");
 
             string testJson = "{\"A\":123,\"B\":456,\"C\":\"789\",\"D\":[10,11,12]}";
-            Assert.AreEqual(testJson, ((Dictionary<string,object>)testJson.FromJson<object>()).ToJson());
+            Assert.AreEqual(testJson, ((Dictionary<string, object>)testJson.FromJson<object>()).ToJson());
         }
 
         public struct NastyStruct
@@ -260,50 +260,61 @@ namespace TinyJson.Test
         [TestMethod]
         public void TestEscaping()
         {
-            var orig = new Dictionary<string,string>{{"hello", "world\n \" \\ \b \r \\0\u263A" } };
-            var parsed = "{\"hello\":\"world\\n \\\" \\\\ \\b \\r \\0\\u263a\"}".FromJson<Dictionary<string,string>>();
+            var orig = new Dictionary<string, string> { { "hello", "world\n \" \\ \b \r \\0\u263A" } };
+            var parsed = "{\"hello\":\"world\\n \\\" \\\\ \\b \\r \\0\\u263a\"}".FromJson<Dictionary<string, string>>();
             Assert.AreEqual(orig["hello"], parsed["hello"]);
         }
 
-		[TestMethod]
-		public void TestMultithread() {
-			// Lots of threads
-			for (int i = 0; i < 100; i++) {
-				new Thread(() => {
-					// Each threads has enough work to potentially hit a race condition
-					for (int j = 0; j < 10000; j++) {
-						TestValues();
-						TestArrayOfValues();
-						TestListOfValues();
-						TestRecursiveLists();
-						TestRecursiveArrays();
-						TestDictionary();
-						TestRecursiveDictionary();
-						TestSimpleObject();
-						TestSimpleStruct();
-						TestListOfStructs();
-						TestDeepObject();
-						CorruptionTest();
-						DynamicParserTest();
-						TestNastyStruct();
-						TestEscaping();
-					}
-				}).Start();
-			}
-		}
+        [TestMethod]
+        public void TestMultithread()
+        {
+            // Lots of threads
+            for (int i = 0; i < 100; i++)
+            {
+                new Thread(() =>
+                {
+                    // Each threads has enough work to potentially hit a race condition
+                    for (int j = 0; j < 10000; j++)
+                    {
+                        TestValues();
+                        TestArrayOfValues();
+                        TestListOfValues();
+                        TestRecursiveLists();
+                        TestRecursiveArrays();
+                        TestDictionary();
+                        TestRecursiveDictionary();
+                        TestSimpleObject();
+                        TestSimpleStruct();
+                        TestListOfStructs();
+                        TestDeepObject();
+                        CorruptionTest();
+                        DynamicParserTest();
+                        TestNastyStruct();
+                        TestEscaping();
+                    }
+                }).Start();
+            }
+        }
 
 
 
 
         [TestMethod]
-        public void TestMyModel()
+        public void TestJsonAttributeModel()
         {
-            jsontest.DataModel _data = new jsontest.DataModel() { Name = "saied", Id = 33 };
+            jsontest.DataModel _data = new jsontest.DataModel() { Name = "saiedkia", Id = 33 };
             jsontest.TestModel<jsontest.DataModel> _item = new jsontest.TestModel<jsontest.DataModel>() { Name = "my container", Data = _data };
 
             string json = TinyJson.JSONWriter.ToJson(_item);
 
-            jsontest.TestModel<jsontest.DataModel> _item2 = TinyJson.JSONParser.FromJson<jsontest.TestModel<jsontest.DataModel>>(json);
+            jsontest.TestModel<jsontest.DataModel> _item2 = TinyJson.JSONParser.FromJson<jsontest.TestModel<jsontest.DataModel>>(jsonTest);
+        }
+
+        [TestMethod]
+        public void TestJsonIgnoreAttribute2()
+        {
+            string jsonTest = "{ 'Data':{ 'Name':'saiedkia','CustomeName':33},'Name':'my container'}";
+            jsontest.TestModel<jsontest.DataModel> _item2 = TinyJson.JSONParser.FromJson<jsontest.TestModel<jsontest.DataModel>>(jsonTest);
         }
 
     }
