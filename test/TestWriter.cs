@@ -29,6 +29,8 @@ namespace TinyJson.Test
             public SimpleObject A;
             public List<int> B;
             public string C { get; set; }
+
+            string name = "sldjflskdfklsdfj";
         }
 
         struct SimpleStruct
@@ -39,8 +41,8 @@ namespace TinyJson.Test
         [TestMethod]
         public void TestObjects()
         {
-            Assert.AreEqual("{\"A\":{},\"B\":[1,2,3],\"C\":\"Test\"}", new SimpleObject { A = new SimpleObject(), B = new List<int> { 1, 2, 3 }, C = "Test" }.ToJson());
-            Assert.AreEqual("{\"A\":{\"A\":{},\"B\":[1,2,3],\"C\":\"Test\"}}", new SimpleStruct { A = new SimpleObject { A = new SimpleObject(), B = new List<int> { 1, 2, 3 }, C = "Test" } }.ToJson());
+            Assert.AreEqual("{\"A\":{\"A\":null,\"B\":null,\"C\":null},\"B\":[1,2,3],\"C\":\"Test\"}", new SimpleObject() { A = new SimpleObject(), B = new List<int> { 1, 2, 3 }, C = "Test" }.ToJson()) ;
+            Assert.AreEqual("{\"A\":{\"A\":{\"A\":null,\"B\":null,\"C\":null},\"B\":[1,2,3],\"C\":\"Test\"}}", new SimpleStruct { A = new SimpleObject { A = new SimpleObject(), B = new List<int> { 1, 2, 3 }, C = "Test" } }.ToJson());
         }
 
         public struct NastyStruct
