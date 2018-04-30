@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
 using System.Reflection;
 using System.Text;
 
@@ -24,7 +23,7 @@ namespace TinyJson
         {
             if (item == null)
             {
-                stringBuilder.Append("null");
+                stringBuilder.Append(item.GetType().Name + ": null");
                 return;
             }
 
@@ -33,7 +32,7 @@ namespace TinyJson
             {
                 stringBuilder.Append('"');
                 string str = (string)item;
-                for (int i = 0; i<str.Length; ++i)
+                for (int i = 0; i < str.Length; ++i)
                     if (str[i] < ' ' || str[i] == '"' || str[i] == '\\')
                     {
                         stringBuilder.Append('\\');
@@ -81,7 +80,7 @@ namespace TinyJson
             else if (type.IsGenericType && type.GetGenericTypeDefinition() == typeof(Dictionary<,>))
             {
                 Type keyType = type.GetGenericArguments()[0];
-                
+
                 //Refuse to output dictionary keys that aren't of type string
                 if (keyType != typeof(string))
                 {
@@ -113,6 +112,10 @@ namespace TinyJson
                 FieldInfo[] fieldInfos = type.GetFields();
                 for (int i = 0; i < fieldInfos.Length; i++)
                 {
+                    JsonIgnoreAttribute ignoreAttr = (JsonIgnoreAttribute)fieldInfos[i].GetCustomAttribute(typeof(JsonIgnoreAttribute), false);
+                    if (ignoreAttr != null)
+                        continue;
+
                     if (fieldInfos[i].IsPublic && !fieldInfos[i].IsStatic)
                     {
                         object value = fieldInfos[i].GetValue(item);
@@ -127,13 +130,34 @@ namespace TinyJson
                             stringBuilder.Append("\":");
                             AppendValue(stringBuilder, value);
                         }
+                        else
+                        {
+                            if (isFirst)
+                                isFirst = false;
+                            else
+                                stringBuilder.Append(',');
+                            stringBuilder.Append('\"');
+                            stringBuilder.Append(fieldInfos[i].Name);
+                            stringBuilder.Append("\":");
+                            stringBuilder.Append("null");
+                        }
                     }
                 }
                 PropertyInfo[] propertyInfo = type.GetProperties();
-                for (int i = 0; i<propertyInfo.Length; i++)
+                for (int i = 0; i < propertyInfo.Length; i++)
                 {
                     if (propertyInfo[i].CanRead)
                     {
+                        string propertyName = propertyInfo[i].Name;
+
+                        JsonIgnoreAttribute ignoreAttr = (JsonIgnoreAttribute)propertyInfo[i].GetCustomAttribute(typeof(JsonIgnoreAttribute), false);
+                        if (ignoreAttr != null)
+                            continue;
+
+                        JsonPropertyAttribute nameAttribute = (JsonPropertyAttribute)propertyInfo[i].GetCustomAttribute(typeof(JsonPropertyAttribute), false);
+                        if (nameAttribute != null)
+                            propertyName = nameAttribute.Name;
+
                         object value = propertyInfo[i].GetValue(item, null);
                         if (value != null)
                         {
@@ -142,9 +166,20 @@ namespace TinyJson
                             else
                                 stringBuilder.Append(',');
                             stringBuilder.Append('\"');
-                            stringBuilder.Append(propertyInfo[i].Name);
+                            stringBuilder.Append(propertyName);
                             stringBuilder.Append("\":");
                             AppendValue(stringBuilder, value);
+                        }
+                        else
+                        {
+                            if (isFirst)
+                                isFirst = false;
+                            else
+                                stringBuilder.Append(',');
+                            stringBuilder.Append('\"');
+                            stringBuilder.Append(propertyName);
+                            stringBuilder.Append("\":");
+                            stringBuilder.Append("null");
                         }
                     }
                 }
