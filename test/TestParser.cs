@@ -306,15 +306,20 @@ namespace TinyJson.Test
             jsontest.TestModel<jsontest.DataModel> _item = new jsontest.TestModel<jsontest.DataModel>() { Name = "my container", Data = _data };
 
             string json = TinyJson.JSONWriter.ToJson(_item);
+            
+            jsontest.TestModel<jsontest.DataModel> _item2 = TinyJson.JSONParser.FromJson<jsontest.TestModel<jsontest.DataModel>>(json);
 
-            jsontest.TestModel<jsontest.DataModel> _item2 = TinyJson.JSONParser.FromJson<jsontest.TestModel<jsontest.DataModel>>(jsonTest);
+            Assert.AreEqual(json, _item.ToJson());
         }
 
         [TestMethod]
-        public void TestJsonIgnoreAttribute2()
+        public void TestJsonIgnoreAttributeIgnoreName()
         {
+            //jsontest.TestModel<jsontest.DataModel> _item2 = 
             string jsonTest = "{ 'Data':{ 'Name':'saiedkia','CustomeName':33},'Name':'my container'}";
             jsontest.TestModel<jsontest.DataModel> _item2 = TinyJson.JSONParser.FromJson<jsontest.TestModel<jsontest.DataModel>>(jsonTest);
+
+            Assert.AreEqual(_item2.Data.Id, 33);
         }
 
     }
