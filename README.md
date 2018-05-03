@@ -4,7 +4,7 @@
 [![License](https://img.shields.io/badge/license-MIT-lightgrey.svg)](https://raw.githubusercontent.com/zanders3/json/master/LICENSE)
 [![NuGet](https://img.shields.io/nuget/v/TinyJson.svg)](https://www.nuget.org/packages/TinyJson)
 
-A really simple C# JSON parser in ~300 lines
+A really simple C# JSON parser in ~350 lines
 - Attempts to parse JSON files with minimal GC allocation
 - Nice and simple `"[1,2,3]".FromJson<List<int>>()` API
 - Classes and structs can be parsed too!
@@ -23,6 +23,7 @@ int number = ((Dictionary<string,object>)test)["Value"];
 - No JIT Emit support to support AOT compilation on iOS
 - Attempts are made to NOT throw an exception if the JSON is corrupted or invalid: returns null instead.
 - Only public fields and property setters on classes/structs will be written to
+- You can *optionally* use `[IgnoreDataMember]` and `[DataMember(Name="Foo")]` to ignore vars and override the default name
 
 Limitations:
 - No JIT Emit support to parse structures quickly
@@ -59,9 +60,3 @@ Save this as `JsonTest.cs` then compile and run with `mcs JsonTest.cs && mono Js
 ## Installation
 
 Simply copy and paste the [JSON Parser](https://raw.githubusercontent.com/zanders3/json/master/src/JSONParser.cs) and/or the [JSON Writer](https://raw.githubusercontent.com/zanders3/json/master/src/JSONWriter.cs) into your project. I also provide NuGet but I recommend the copy paste route ;)
-
-## Unit Tests
-
-You can use dotnet to build and run the unit tests:
-
-    dotnet test
