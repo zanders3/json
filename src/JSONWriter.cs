@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.Serialization;
 using System.Text;
 
 namespace TinyJson
@@ -113,7 +114,7 @@ namespace TinyJson
                 FieldInfo[] fieldInfos = type.GetFields();
                 for (int i = 0; i < fieldInfos.Length; i++)
                 {
-                    if (fieldInfos[i].IsPublic && !fieldInfos[i].IsStatic)
+                    if (fieldInfos[i].IsPublic && !fieldInfos[i].IsStatic && fieldInfos[i].GetCustomAttribute<IgnoreDataMemberAttribute>() == null)
                     {
                         object value = fieldInfos[i].GetValue(item);
                         if (value != null)
@@ -123,7 +124,7 @@ namespace TinyJson
                             else
                                 stringBuilder.Append(',');
                             stringBuilder.Append('\"');
-                            stringBuilder.Append(fieldInfos[i].Name);
+                            stringBuilder.Append(GetMemberName(fieldInfos[i]));
                             stringBuilder.Append("\":");
                             AppendValue(stringBuilder, value);
                         }
@@ -132,7 +133,7 @@ namespace TinyJson
                 PropertyInfo[] propertyInfo = type.GetProperties();
                 for (int i = 0; i<propertyInfo.Length; i++)
                 {
-                    if (propertyInfo[i].CanRead)
+                    if (propertyInfo[i].CanRead && propertyInfo[i].GetCustomAttribute<IgnoreDataMemberAttribute>() == null)
                     {
                         object value = propertyInfo[i].GetValue(item, null);
                         if (value != null)
@@ -142,7 +143,7 @@ namespace TinyJson
                             else
                                 stringBuilder.Append(',');
                             stringBuilder.Append('\"');
-                            stringBuilder.Append(propertyInfo[i].Name);
+                            stringBuilder.Append(GetMemberName(propertyInfo[i]));
                             stringBuilder.Append("\":");
                             AppendValue(stringBuilder, value);
                         }
@@ -151,6 +152,14 @@ namespace TinyJson
 
                 stringBuilder.Append('}');
             }
+        }
+
+        static string GetMemberName(MemberInfo member)
+        {
+            DataMemberAttribute dataMemberAttribute = member.GetCustomAttribute<DataMemberAttribute>();
+            if (dataMemberAttribute != null && dataMemberAttribute.IsNameSetExplicitly)
+                return dataMemberAttribute.Name;
+            return member.Name;
         }
     }
 }

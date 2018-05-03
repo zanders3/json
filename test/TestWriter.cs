@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Runtime.Serialization;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using TinyJson;
 
@@ -65,6 +66,39 @@ namespace TinyJson.Test
             Assert.AreEqual("{\"hello\":\"world\\n \\\\ \\\" \\b \\r \\u0000\u263A\"}", new Dictionary<string,string>{
                 {"hello", "world\n \\ \" \b \r \0\u263A"}
             }.ToJson());
+        }
+
+        class IgnoreDataMemberObject
+        {
+            [IgnoreDataMember]
+            public int A;
+            public int B;
+            [IgnoreDataMember]
+            public int C { get; set; }
+            public int D { get; set; }
+        }
+
+        [TestMethod]
+        public void TestIgnoreDataMemberObject()
+        {
+            Assert.AreEqual("{\"B\":20,\"D\":40}", new IgnoreDataMemberObject { A = 10, B = 20, C = 30, D = 40 }.ToJson());
+        }
+
+        class DataMemberObject
+        {
+            [DataMember(Name = "a")]
+            public int A;
+            [DataMember()]
+            public int B;
+            [DataMember(Name = "c")]
+            public int C { get; set; }
+            public int D { get; set; }
+        }
+
+        [TestMethod]
+        public void TestDataMemberObject()
+        {
+            Assert.AreEqual("{\"a\":10,\"B\":20,\"c\":30,\"D\":40}", new DataMemberObject { A = 10, B = 20, C = 30, D = 40 }.ToJson());
         }
     }
 }
