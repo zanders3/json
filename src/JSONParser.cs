@@ -310,6 +310,14 @@ namespace TinyJson
             return null;
         }
 
+        static string GetMemberName(MemberInfo member)
+        {
+            DataMemberAttribute dataMemberAttribute = member.GetCustomAttribute<DataMemberAttribute>();
+            if (dataMemberAttribute != null && dataMemberAttribute.IsNameSetExplicitly)
+                return dataMemberAttribute.Name;
+            return member.Name;
+        }
+
         static object ParseObject(Type type, string json)
         {
             object instance = FormatterServices.GetUninitializedObject(type);
@@ -323,12 +331,12 @@ namespace TinyJson
             Dictionary<string, PropertyInfo> nameToProperty;
             if (!fieldInfoCache.TryGetValue(type, out nameToField))
             {
-                nameToField = type.GetFields().Where(field => field.IsPublic).ToDictionary(field => field.Name);
+                nameToField = type.GetFields().Where(field => field.IsPublic && field.GetCustomAttribute<IgnoreDataMemberAttribute>() == null).ToDictionary(GetMemberName);
                 fieldInfoCache.Add(type, nameToField);
             }
             if (!propertyInfoCache.TryGetValue(type, out nameToProperty))
             {
-                nameToProperty = type.GetProperties().ToDictionary(p => p.Name);
+                nameToProperty = type.GetProperties().Where(property => property.GetCustomAttribute<IgnoreDataMemberAttribute>() == null).ToDictionary(GetMemberName);
                 propertyInfoCache.Add(type, nameToProperty);
             }
 

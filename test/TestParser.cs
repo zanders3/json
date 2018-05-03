@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Runtime.Serialization;
 using System.Text;
 using System.Threading;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -291,5 +292,50 @@ namespace TinyJson.Test
 				}).Start();
 			}
 		}
+
+        class IgnoreDataMemberObject
+        {
+            public int A;
+            [IgnoreDataMember]
+            public int B;
+
+            public int C { get; set; }
+            [IgnoreDataMember]
+            public int D { get; set; }
+        }
+
+        [TestMethod]
+        public void TestIgnoreDataMember()
+        {
+            IgnoreDataMemberObject value = "{\"A\":123,\"B\":456,\"Ignored\":10,\"C\":789,\"D\":14}".FromJson<IgnoreDataMemberObject>();
+            Assert.IsNotNull(value);
+            Assert.AreEqual(123, value.A);
+            Assert.AreEqual(0, value.B);
+            Assert.AreEqual(789, value.C);
+            Assert.AreEqual(0, value.D);
+        }
+
+        class DataMemberObject
+        {
+            [DataMember(Name = "a")]
+            public int A;
+            [DataMember()]
+            public int B;
+
+            [DataMember(Name = "c")]
+            public int C { get; set; }
+            public int D { get; set; }
+        }
+
+        [TestMethod]
+        public void TestDataMemberObject()
+        {
+            DataMemberObject value = "{\"a\":123,\"B\":456,\"c\":789,\"D\":14}".FromJson<DataMemberObject>();
+            Assert.IsNotNull(value);
+            Assert.AreEqual(123, value.A);
+            Assert.AreEqual(456, value.B);
+            Assert.AreEqual(789, value.C);
+            Assert.AreEqual(14, value.D);
+        }
     }
 }
