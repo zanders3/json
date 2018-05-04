@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
 using System.Reflection;
 using System.Runtime.Serialization;
 using System.Text;
@@ -82,7 +81,7 @@ namespace TinyJson
             else if (type.IsGenericType && type.GetGenericTypeDefinition() == typeof(Dictionary<,>))
             {
                 Type keyType = type.GetGenericArguments()[0];
-                
+
                 //Refuse to output dictionary keys that aren't of type string
                 if (keyType != typeof(string))
                 {
@@ -111,42 +110,42 @@ namespace TinyJson
                 stringBuilder.Append('{');
 
                 bool isFirst = true;
-                FieldInfo[] fieldInfos = type.GetFields();
+                FieldInfo[] fieldInfos = type.GetFields(BindingFlags.Instance | BindingFlags.Public | BindingFlags.FlattenHierarchy);
                 for (int i = 0; i < fieldInfos.Length; i++)
                 {
-                    if (fieldInfos[i].IsPublic && !fieldInfos[i].IsStatic && fieldInfos[i].GetCustomAttribute<IgnoreDataMemberAttribute>() == null)
+                    if (fieldInfos[i].GetCustomAttribute<IgnoreDataMemberAttribute>() != null)
+                        continue;
+
+                    object value = fieldInfos[i].GetValue(item);
+                    if (value != null)
                     {
-                        object value = fieldInfos[i].GetValue(item);
-                        if (value != null)
-                        {
-                            if (isFirst)
-                                isFirst = false;
-                            else
-                                stringBuilder.Append(',');
-                            stringBuilder.Append('\"');
-                            stringBuilder.Append(GetMemberName(fieldInfos[i]));
-                            stringBuilder.Append("\":");
-                            AppendValue(stringBuilder, value);
-                        }
+                        if (isFirst)
+                            isFirst = false;
+                        else
+                            stringBuilder.Append(',');
+                        stringBuilder.Append('\"');
+                        stringBuilder.Append(GetMemberName(fieldInfos[i]));
+                        stringBuilder.Append("\":");
+                        AppendValue(stringBuilder, value);
                     }
                 }
-                PropertyInfo[] propertyInfo = type.GetProperties();
+                PropertyInfo[] propertyInfo = type.GetProperties(BindingFlags.Instance | BindingFlags.Public | BindingFlags.FlattenHierarchy);
                 for (int i = 0; i<propertyInfo.Length; i++)
                 {
-                    if (propertyInfo[i].CanRead && propertyInfo[i].GetCustomAttribute<IgnoreDataMemberAttribute>() == null)
+                    if (!propertyInfo[i].CanRead || propertyInfo[i].GetCustomAttribute<IgnoreDataMemberAttribute>() != null)
+                        continue;
+
+                    object value = propertyInfo[i].GetValue(item, null);
+                    if (value != null)
                     {
-                        object value = propertyInfo[i].GetValue(item, null);
-                        if (value != null)
-                        {
-                            if (isFirst)
-                                isFirst = false;
-                            else
-                                stringBuilder.Append(',');
-                            stringBuilder.Append('\"');
-                            stringBuilder.Append(GetMemberName(propertyInfo[i]));
-                            stringBuilder.Append("\":");
-                            AppendValue(stringBuilder, value);
-                        }
+                        if (isFirst)
+                            isFirst = false;
+                        else
+                            stringBuilder.Append(',');
+                        stringBuilder.Append('\"');
+                        stringBuilder.Append(GetMemberName(propertyInfo[i]));
+                        stringBuilder.Append("\":");
+                        AppendValue(stringBuilder, value);
                     }
                 }
 

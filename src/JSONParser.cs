@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
 using System.Reflection;
 using System.Runtime.Serialization;
 using System.Text;
@@ -251,7 +250,7 @@ namespace TinyJson
             if (type == typeof(object))
             {
                 return ParseAnonymousValue(json);
-            }    
+            }
             if (json[0] == '{' && json[json.Length - 1] == '}')
             {
                 return ParseObject(type, json);
@@ -310,12 +309,26 @@ namespace TinyJson
             return null;
         }
 
-        static string GetMemberName(MemberInfo member)
+        static Dictionary<string, T> CreateMemberNameDictionary<T>(T[] members) where T : MemberInfo
         {
-            DataMemberAttribute dataMemberAttribute = member.GetCustomAttribute<DataMemberAttribute>();
-            if (dataMemberAttribute != null && dataMemberAttribute.IsNameSetExplicitly)
-                return dataMemberAttribute.Name;
-            return member.Name;
+            Dictionary<string, T> nameToMember = new Dictionary<string, T>();
+            for (int i = 0; i < members.Length; i++)
+            {
+                T member = members[i];
+                if (member.GetCustomAttribute<IgnoreDataMemberAttribute>() != null)
+                    continue;
+
+                string name;
+                DataMemberAttribute dataMemberAttribute = member.GetCustomAttribute<DataMemberAttribute>();
+                if (dataMemberAttribute != null && dataMemberAttribute.IsNameSetExplicitly)
+                    name = dataMemberAttribute.Name;
+                else
+                    name = member.Name;
+
+                nameToMember.Add(name, member);
+            }
+
+            return nameToMember;
         }
 
         static object ParseObject(Type type, string json)
@@ -331,12 +344,14 @@ namespace TinyJson
             Dictionary<string, PropertyInfo> nameToProperty;
             if (!fieldInfoCache.TryGetValue(type, out nameToField))
             {
-                nameToField = type.GetFields().Where(field => field.IsPublic && field.GetCustomAttribute<IgnoreDataMemberAttribute>() == null).ToDictionary(GetMemberName);
+                FieldInfo[] fields = type.GetFields(BindingFlags.Instance | BindingFlags.Public | BindingFlags.FlattenHierarchy);
+                nameToField = CreateMemberNameDictionary(fields);
                 fieldInfoCache.Add(type, nameToField);
             }
             if (!propertyInfoCache.TryGetValue(type, out nameToProperty))
             {
-                nameToProperty = type.GetProperties().Where(property => property.GetCustomAttribute<IgnoreDataMemberAttribute>() == null).ToDictionary(GetMemberName);
+                PropertyInfo[] properties = type.GetProperties(BindingFlags.Instance | BindingFlags.Public | BindingFlags.FlattenHierarchy);
+                nameToProperty = CreateMemberNameDictionary(properties);
                 propertyInfoCache.Add(type, nameToProperty);
             }
 
