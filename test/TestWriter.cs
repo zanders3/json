@@ -30,6 +30,13 @@ namespace TinyJson.Test
             public SimpleObject A;
             public List<int> B;
             public string C { get; set; }
+
+            // Should not serialize
+            private int D = 333;
+            public static int E = 555;
+            internal int F = 777;
+            protected int G = 999;
+            public const int H = 111;
         }
 
         struct SimpleStruct
@@ -37,11 +44,17 @@ namespace TinyJson.Test
             public SimpleObject A;
         }
 
+        class InheritedObject : SimpleObject
+        {
+            public int X;
+        }
+
         [TestMethod]
         public void TestObjects()
         {
             Assert.AreEqual("{\"A\":{},\"B\":[1,2,3],\"C\":\"Test\"}", new SimpleObject { A = new SimpleObject(), B = new List<int> { 1, 2, 3 }, C = "Test" }.ToJson());
             Assert.AreEqual("{\"A\":{\"A\":{},\"B\":[1,2,3],\"C\":\"Test\"}}", new SimpleStruct { A = new SimpleObject { A = new SimpleObject(), B = new List<int> { 1, 2, 3 }, C = "Test" } }.ToJson());
+            Assert.AreEqual("{\"X\":9,\"A\":{},\"B\":[1,2,3],\"C\":\"Test\"}", new InheritedObject { A = new SimpleObject(), B = new List<int> { 1, 2, 3 }, C = "Test", X = 9 }.ToJson());
         }
 
         public struct NastyStruct
