@@ -21,8 +21,11 @@ namespace TinyJson.Test
         public void TestValues()
         {
             Test(12345, "12345");
+            Test(12345L, "12345");
+            Test(12345UL, "12345");
             Test(12.532f, "12.532");
-            Test(12.532, "12.532");
+            Test(12.532m, "12.532");
+            Test(12.532d, "12.532");
             Test("hello", "\"hello\"");
             Test("hello there", "\"hello there\"");
             Test("hello\nthere", "\"hello\nthere\"");
@@ -32,7 +35,7 @@ namespace TinyJson.Test
             Test<object>(null, "sfdoijsdfoij");
         }
 
-        static void ArrayTest<T>(T[] expected, string json)
+		static void ArrayTest<T>(T[] expected, string json)
         {
             var value = (T[])json.FromJson<T[]>();
             CollectionAssert.AreEqual(expected, value);
@@ -122,9 +125,9 @@ namespace TinyJson.Test
             public float B;
             public string C { get; set; }
             public List<int> D { get; set; }
-        }
+		}
 
-        [TestMethod]
+		[TestMethod]
         public void TestSimpleObject()
         {
             SimpleObject value = "{\"A\":123,\"b\":456,\"C\":\"789\",\"D\":[10,11,12]}".FromJson<SimpleObject>();
