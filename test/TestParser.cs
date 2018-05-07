@@ -127,7 +127,7 @@ namespace TinyJson.Test
         [TestMethod]
         public void TestSimpleObject()
         {
-            SimpleObject value = "{\"A\":123,\"B\":456,\"C\":\"789\",\"D\":[10,11,12]}".FromJson<SimpleObject>();
+            SimpleObject value = "{\"A\":123,\"b\":456,\"C\":\"789\",\"D\":[10,11,12]}".FromJson<SimpleObject>();
             Assert.IsNotNull(value);
             Assert.AreEqual(123, value.A);
             Assert.AreEqual(456f, value.B);
@@ -146,7 +146,7 @@ namespace TinyJson.Test
         [TestMethod]
         public void TestSimpleStruct()
         {
-            SimpleStruct value = "{\"Obj\":{\"A\":12345}}".FromJson<SimpleStruct>();
+            SimpleStruct value = "{\"obj\":{\"A\":12345}}".FromJson<SimpleStruct>();
             Assert.IsNotNull(value.Obj);
             Assert.AreEqual(value.Obj.A, 12345);
         }

@@ -311,7 +311,7 @@ namespace TinyJson
 
         static Dictionary<string, T> CreateMemberNameDictionary<T>(T[] members) where T : MemberInfo
         {
-            Dictionary<string, T> nameToMember = new Dictionary<string, T>();
+            Dictionary<string, T> nameToMember = new Dictionary<string, T>(StringComparer.OrdinalIgnoreCase);
             for (int i = 0; i < members.Length; i++)
             {
                 T member = members[i];
