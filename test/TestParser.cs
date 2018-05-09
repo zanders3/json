@@ -35,7 +35,7 @@ namespace TinyJson.Test
             Test<object>(null, "sfdoijsdfoij");
         }
 
-		static void ArrayTest<T>(T[] expected, string json)
+        static void ArrayTest<T>(T[] expected, string json)
         {
             var value = (T[])json.FromJson<T[]>();
             CollectionAssert.AreEqual(expected, value);
@@ -125,9 +125,9 @@ namespace TinyJson.Test
             public float B;
             public string C { get; set; }
             public List<int> D { get; set; }
-		}
+        }
 
-		[TestMethod]
+        [TestMethod]
         public void TestSimpleObject()
         {
             SimpleObject value = "{\"A\":123,\"b\":456,\"C\":\"789\",\"D\":[10,11,12]}".FromJson<SimpleObject>();
@@ -269,32 +269,32 @@ namespace TinyJson.Test
             Assert.AreEqual(orig["hello"], parsed["hello"]);
         }
 
-		[TestMethod]
-		public void TestMultithread() {
-			// Lots of threads
-			for (int i = 0; i < 100; i++) {
-				new Thread(() => {
-					// Each threads has enough work to potentially hit a race condition
-					for (int j = 0; j < 10000; j++) {
-						TestValues();
-						TestArrayOfValues();
-						TestListOfValues();
-						TestRecursiveLists();
-						TestRecursiveArrays();
-						TestDictionary();
-						TestRecursiveDictionary();
-						TestSimpleObject();
-						TestSimpleStruct();
-						TestListOfStructs();
-						TestDeepObject();
-						CorruptionTest();
-						DynamicParserTest();
-						TestNastyStruct();
-						TestEscaping();
-					}
-				}).Start();
-			}
-		}
+        [TestMethod]
+        public void TestMultithread() {
+            // Lots of threads
+            for (int i = 0; i < 100; i++) {
+                new Thread(() => {
+                    // Each threads has enough work to potentially hit a race condition
+                    for (int j = 0; j < 10000; j++) {
+                        TestValues();
+                        TestArrayOfValues();
+                        TestListOfValues();
+                        TestRecursiveLists();
+                        TestRecursiveArrays();
+                        TestDictionary();
+                        TestRecursiveDictionary();
+                        TestSimpleObject();
+                        TestSimpleStruct();
+                        TestListOfStructs();
+                        TestDeepObject();
+                        CorruptionTest();
+                        DynamicParserTest();
+                        TestNastyStruct();
+                        TestEscaping();
+                    }
+                }).Start();
+            }
+        }
 
         class IgnoreDataMemberObject
         {
