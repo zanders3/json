@@ -158,33 +158,16 @@ namespace TinyJson
                 }
                 return stringBuilder.ToString();
             }
-            if (type == typeof(int))
+            if (type.IsPrimitive)
             {
-                int result;
-                int.TryParse(json, out result);
+                var result = Convert.ChangeType(json, type, System.Globalization.CultureInfo.InvariantCulture);
                 return result;
             }
-            if (type == typeof(byte))
+            if (type == typeof(decimal))
             {
-                byte result;
-                byte.TryParse(json, out result);
+                decimal result;
+                decimal.TryParse(json, System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out result);
                 return result;
-            }
-            if (type == typeof(float))
-            {
-                float result;
-                float.TryParse(json, System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out result);
-                return result;
-            }
-            if (type == typeof(double))
-            {
-                double result;
-                double.TryParse(json, System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out result);
-                return result;
-            }
-            if (type == typeof(bool))
-            {
-                return json.ToLower() == "true";
             }
             if (json == "null")
             {
@@ -311,7 +294,7 @@ namespace TinyJson
 
         static Dictionary<string, T> CreateMemberNameDictionary<T>(T[] members) where T : MemberInfo
         {
-            Dictionary<string, T> nameToMember = new Dictionary<string, T>();
+            Dictionary<string, T> nameToMember = new Dictionary<string, T>(StringComparer.OrdinalIgnoreCase);
             for (int i = 0; i < members.Length; i++)
             {
                 T member = members[i];

@@ -21,8 +21,11 @@ namespace TinyJson.Test
         public void TestValues()
         {
             Test(12345, "12345");
+            Test(12345L, "12345");
+            Test(12345UL, "12345");
             Test(12.532f, "12.532");
-            Test(12.532, "12.532");
+            Test(12.532m, "12.532");
+            Test(12.532d, "12.532");
             Test("hello", "\"hello\"");
             Test("hello there", "\"hello there\"");
             Test("hello\nthere", "\"hello\nthere\"");
@@ -127,7 +130,7 @@ namespace TinyJson.Test
         [TestMethod]
         public void TestSimpleObject()
         {
-            SimpleObject value = "{\"A\":123,\"B\":456,\"C\":\"789\",\"D\":[10,11,12]}".FromJson<SimpleObject>();
+            SimpleObject value = "{\"A\":123,\"b\":456,\"C\":\"789\",\"D\":[10,11,12]}".FromJson<SimpleObject>();
             Assert.IsNotNull(value);
             Assert.AreEqual(123, value.A);
             Assert.AreEqual(456f, value.B);
@@ -146,7 +149,7 @@ namespace TinyJson.Test
         [TestMethod]
         public void TestSimpleStruct()
         {
-            SimpleStruct value = "{\"Obj\":{\"A\":12345}}".FromJson<SimpleStruct>();
+            SimpleStruct value = "{\"obj\":{\"A\":12345}}".FromJson<SimpleStruct>();
             Assert.IsNotNull(value.Obj);
             Assert.AreEqual(value.Obj.A, 12345);
         }
@@ -266,32 +269,32 @@ namespace TinyJson.Test
             Assert.AreEqual(orig["hello"], parsed["hello"]);
         }
 
-		[TestMethod]
-		public void TestMultithread() {
-			// Lots of threads
-			for (int i = 0; i < 100; i++) {
-				new Thread(() => {
-					// Each threads has enough work to potentially hit a race condition
-					for (int j = 0; j < 10000; j++) {
-						TestValues();
-						TestArrayOfValues();
-						TestListOfValues();
-						TestRecursiveLists();
-						TestRecursiveArrays();
-						TestDictionary();
-						TestRecursiveDictionary();
-						TestSimpleObject();
-						TestSimpleStruct();
-						TestListOfStructs();
-						TestDeepObject();
-						CorruptionTest();
-						DynamicParserTest();
-						TestNastyStruct();
-						TestEscaping();
-					}
-				}).Start();
-			}
-		}
+        [TestMethod]
+        public void TestMultithread() {
+            // Lots of threads
+            for (int i = 0; i < 100; i++) {
+                new Thread(() => {
+                    // Each threads has enough work to potentially hit a race condition
+                    for (int j = 0; j < 10000; j++) {
+                        TestValues();
+                        TestArrayOfValues();
+                        TestListOfValues();
+                        TestRecursiveLists();
+                        TestRecursiveArrays();
+                        TestDictionary();
+                        TestRecursiveDictionary();
+                        TestSimpleObject();
+                        TestSimpleStruct();
+                        TestListOfStructs();
+                        TestDeepObject();
+                        CorruptionTest();
+                        DynamicParserTest();
+                        TestNastyStruct();
+                        TestEscaping();
+                    }
+                }).Start();
+            }
+        }
 
         class IgnoreDataMemberObject
         {
