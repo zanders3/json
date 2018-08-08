@@ -1,6 +1,7 @@
-﻿using System;
+using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 using System.Runtime.Serialization;
 using System.Text;
@@ -26,21 +27,21 @@ namespace TinyJson
     // - Parsing of abstract classes or interfaces is NOT supported and will throw an exception.
     public static class JSONParser
     {
-        [ThreadStatic] static Stack<List<string>> splitArrayPool;
-        [ThreadStatic] static StringBuilder stringBuilder;
-        [ThreadStatic] static Dictionary<Type, Dictionary<string, FieldInfo>> fieldInfoCache;
-        [ThreadStatic] static Dictionary<Type, Dictionary<string, PropertyInfo>> propertyInfoCache;
+        [ThreadStatic] private static Stack<List<string>> _splitArrayPool;
+        [ThreadStatic] private static StringBuilder _stringBuilder;
+        [ThreadStatic] private static Dictionary<Type, Dictionary<string, FieldInfo>> _fieldInfoCache;
+        [ThreadStatic] private static Dictionary<Type, Dictionary<string, PropertyInfo>> _propertyInfoCache;
 
         public static T FromJson<T>(this string json)
         {
             // Initialize, if needed, the ThreadStatic variables
-            if (null == propertyInfoCache) propertyInfoCache = new Dictionary<Type, Dictionary<string, PropertyInfo>>();
-            if (null == fieldInfoCache) fieldInfoCache = new Dictionary<Type, Dictionary<string, FieldInfo>>();
-            if (null == stringBuilder) stringBuilder = new StringBuilder();
-            if (null == splitArrayPool) splitArrayPool = new Stack<List<string>>();
+            if (null == _propertyInfoCache) _propertyInfoCache = new Dictionary<Type, Dictionary<string, PropertyInfo>>();
+            if (null == _fieldInfoCache) _fieldInfoCache = new Dictionary<Type, Dictionary<string, FieldInfo>>();
+            if (null == _stringBuilder) _stringBuilder = new StringBuilder();
+            if (null == _splitArrayPool) _splitArrayPool = new Stack<List<string>>();
 
             //Remove all whitespace not within strings to make parsing simpler
-            stringBuilder.Length = 0;
+            _stringBuilder.Length = 0;
             for (int i = 0; i < json.Length; i++)
             {
                 char c = json[i];
@@ -52,32 +53,32 @@ namespace TinyJson
                 if (char.IsWhiteSpace(c))
                     continue;
 
-                stringBuilder.Append(c);
+                _stringBuilder.Append(c);
             }
 
             //Parse the thing!
-            return (T)ParseValue(typeof(T), stringBuilder.ToString());
+            return (T)ParseValue(typeof(T), _stringBuilder.ToString());
         }
 
         static int AppendUntilStringEnd(bool appendEscapeCharacter, int startIdx, string json)
         {
-            stringBuilder.Append(json[startIdx]);
+            _stringBuilder.Append(json[startIdx]);
             for (int i = startIdx+1; i<json.Length; i++)
             {
                 if (json[i] == '\\')
                 {
                     if (appendEscapeCharacter)
-                        stringBuilder.Append(json[i]);
-                    stringBuilder.Append(json[i + 1]);
+                        _stringBuilder.Append(json[i]);
+                    _stringBuilder.Append(json[i + 1]);
                     i++;//Skip next character as it is escaped
                 }
                 else if (json[i] == '"')
                 {
-                    stringBuilder.Append(json[i]);
+                    _stringBuilder.Append(json[i]);
                     return i;
                 }
                 else
-                    stringBuilder.Append(json[i]);
+                    _stringBuilder.Append(json[i]);
             }
             return json.Length - 1;
         }
@@ -85,12 +86,12 @@ namespace TinyJson
         //Splits { <value>:<value>, <value>:<value> } and [ <value>, <value> ] into a list of <value> strings
         static List<string> Split(string json)
         {
-            List<string> splitArray = splitArrayPool.Count > 0 ? splitArrayPool.Pop() : new List<string>();
+            List<string> splitArray = _splitArrayPool.Count > 0 ? _splitArrayPool.Pop() : new List<string>();
             splitArray.Clear();
             if(json.Length == 2)
                 return splitArray;
             int parseDepth = 0;
-            stringBuilder.Length = 0;
+            _stringBuilder.Length = 0;
             for (int i = 1; i<json.Length-1; i++)
             {
                 switch (json[i])
@@ -110,17 +111,17 @@ namespace TinyJson
                     case ':':
                         if (parseDepth == 0)
                         {
-                            splitArray.Add(stringBuilder.ToString());
-                            stringBuilder.Length = 0;
+                            splitArray.Add(_stringBuilder.ToString());
+                            _stringBuilder.Length = 0;
                             continue;
                         }
                         break;
                 }
 
-                stringBuilder.Append(json[i]);
+                _stringBuilder.Append(json[i]);
             }
 
-            splitArray.Add(stringBuilder.ToString());
+            splitArray.Add(_stringBuilder.ToString());
 
             return splitArray;
         }
@@ -145,8 +146,7 @@ namespace TinyJson
                         }
                         if (json[i + 1] == 'u' && i + 5 < json.Length - 1)
                         {
-                            UInt32 c = 0;
-                            if (UInt32.TryParse(json.Substring(i + 2, 4), System.Globalization.NumberStyles.AllowHexSpecifier, null, out c))
+                            if (UInt32.TryParse(json.Substring(i + 2, 4), System.Globalization.NumberStyles.AllowHexSpecifier, null, out var c))
                             {
                                 stringBuilder.Append((char)c);
                                 i += 5;
@@ -165,8 +165,7 @@ namespace TinyJson
             }
             if (type == typeof(decimal))
             {
-                decimal result;
-                decimal.TryParse(json, System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out result);
+                decimal.TryParse(json, System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out var result);
                 return result;
             }
             if (json == "null")
@@ -183,7 +182,7 @@ namespace TinyJson
                 Array newArray = Array.CreateInstance(arrayType, elems.Count);
                 for (int i = 0; i < elems.Count; i++)
                     newArray.SetValue(ParseValue(arrayType, elems[i]), i);
-                splitArrayPool.Push(elems);
+                _splitArrayPool.Push(elems);
                 return newArray;
             }
             if (type.IsGenericType && type.GetGenericTypeDefinition() == typeof(List<>))
@@ -193,10 +192,11 @@ namespace TinyJson
                     return null;
 
                 List<string> elems = Split(json);
-                var list = (IList)type.GetConstructor(new Type[] { typeof(int) }).Invoke(new object[] { elems.Count });
-                for (int i = 0; i < elems.Count; i++)
-                    list.Add(ParseValue(listType, elems[i]));
-                splitArrayPool.Push(elems);
+                var list = (IList)type.GetConstructor(new[] { typeof(int) }).Invoke(new object[] { elems.Count });
+                foreach (var element in elems)
+                    list.Add(ParseValue(listType, element));
+
+                _splitArrayPool.Push(elems);
                 return list;
             }
             if (type.IsGenericType && type.GetGenericTypeDefinition() == typeof(Dictionary<,>))
@@ -219,7 +219,7 @@ namespace TinyJson
                 if (elems.Count % 2 != 0)
                     return null;
 
-                var dictionary = (IDictionary)type.GetConstructor(new Type[] { typeof(int) }).Invoke(new object[] { elems.Count / 2 });
+                var dictionary = (IDictionary)type.GetConstructor(new[] { typeof(int) }).Invoke(new object[] { elems.Count / 2 });
                 for (int i = 0; i < elems.Count; i += 2)
                 {
                     if (elems[i].Length <= 2)
@@ -260,8 +260,7 @@ namespace TinyJson
             {
                 List<string> items = Split(json);
                 var finalList = new List<object>(items.Count);
-                for (int i = 0; i < items.Count; i++)
-                    finalList.Add(ParseAnonymousValue(items[i]));
+                finalList.AddRange(items.Select(ParseAnonymousValue));
                 return finalList;
             }
             if (json[0] == '"' && json[json.Length - 1] == '"')
@@ -273,14 +272,12 @@ namespace TinyJson
             {
                 if (json.Contains("."))
                 {
-                    double result;
-                    double.TryParse(json, System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out result);
+                    double.TryParse(json, System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out var result);
                     return result;
                 }
                 else
                 {
-                    int result;
-                    int.TryParse(json, out result);
+                    int.TryParse(json, out var result);
                     return result;
                 }
             }
@@ -295,9 +292,8 @@ namespace TinyJson
         static Dictionary<string, T> CreateMemberNameDictionary<T>(T[] members) where T : MemberInfo
         {
             Dictionary<string, T> nameToMember = new Dictionary<string, T>(StringComparer.OrdinalIgnoreCase);
-            for (int i = 0; i < members.Length; i++)
+            foreach (var member in members)
             {
-                T member = members[i];
                 if (member.GetCustomAttribute<IgnoreDataMemberAttribute>() != null)
                     continue;
 
@@ -323,19 +319,17 @@ namespace TinyJson
             if (elems.Count % 2 != 0)
                 return instance;
 
-            Dictionary<string, FieldInfo> nameToField;
-            Dictionary<string, PropertyInfo> nameToProperty;
-            if (!fieldInfoCache.TryGetValue(type, out nameToField))
+            if (!_fieldInfoCache.TryGetValue(type, out var nameToField))
             {
                 FieldInfo[] fields = type.GetFields(BindingFlags.Instance | BindingFlags.Public | BindingFlags.FlattenHierarchy);
                 nameToField = CreateMemberNameDictionary(fields);
-                fieldInfoCache.Add(type, nameToField);
+                _fieldInfoCache.Add(type, nameToField);
             }
-            if (!propertyInfoCache.TryGetValue(type, out nameToProperty))
+            if (!_propertyInfoCache.TryGetValue(type, out var nameToProperty))
             {
                 PropertyInfo[] properties = type.GetProperties(BindingFlags.Instance | BindingFlags.Public | BindingFlags.FlattenHierarchy);
                 nameToProperty = CreateMemberNameDictionary(properties);
-                propertyInfoCache.Add(type, nameToProperty);
+                _propertyInfoCache.Add(type, nameToProperty);
             }
 
             for (int i = 0; i < elems.Count; i += 2)
@@ -345,11 +339,9 @@ namespace TinyJson
                 string key = elems[i].Substring(1, elems[i].Length - 2);
                 string value = elems[i + 1];
 
-                FieldInfo fieldInfo;
-                PropertyInfo propertyInfo;
-                if (nameToField.TryGetValue(key, out fieldInfo))
+                if (nameToField.TryGetValue(key, out var fieldInfo))
                     fieldInfo.SetValue(instance, ParseValue(fieldInfo.FieldType, value));
-                else if (nameToProperty.TryGetValue(key, out propertyInfo))
+                else if (nameToProperty.TryGetValue(key, out var propertyInfo))
                     propertyInfo.SetValue(instance, ParseValue(propertyInfo.PropertyType, value), null);
             }
 
