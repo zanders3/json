@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Reflection;
@@ -32,24 +32,25 @@ namespace TinyJson
             if (type == typeof(string))
             {
                 stringBuilder.Append('"');
-                string str = (string)item;
-                for (int i = 0; i<str.Length; ++i)
-                    if (str[i] < ' ' || str[i] == '"' || str[i] == '\\')
+                var str = (string)item;
+                foreach (var character in str)
+                    if (character < ' ' || character == '"' || character == '\\')
                     {
                         stringBuilder.Append('\\');
-                        int j = "\"\\\n\r\t\b\f".IndexOf(str[i]);
+                        int j = "\"\\\n\r\t\b\f".IndexOf(character);
                         if (j >= 0)
                             stringBuilder.Append("\"\\nrtbf"[j]);
                         else
-                            stringBuilder.AppendFormat("u{0:X4}", (UInt32)str[i]);
+                            stringBuilder.AppendFormat("u{0:X4}", (UInt32)character);
                     }
                     else
-                        stringBuilder.Append(str[i]);
+                        stringBuilder.Append(character);
+
                 stringBuilder.Append('"');
             }
             else if (type == typeof(byte) || type == typeof(int))
             {
-                stringBuilder.Append(item.ToString());
+                stringBuilder.Append(item);
             }
             else if (type == typeof(float))
             {
@@ -63,24 +64,23 @@ namespace TinyJson
             {
                 stringBuilder.Append(((bool)item) ? "true" : "false");
             }
-            else if (item is IList)
+            else if (item is IList list)
             {
                 stringBuilder.Append('[');
                 bool isFirst = true;
-                IList list = item as IList;
-                for (int i = 0; i < list.Count; i++)
+                foreach (var value in list)
                 {
                     if (isFirst)
                         isFirst = false;
                     else
                         stringBuilder.Append(',');
-                    AppendValue(stringBuilder, list[i]);
+                    AppendValue(stringBuilder, value);
                 }
                 stringBuilder.Append(']');
             }
             else if (type.IsGenericType && type.GetGenericTypeDefinition() == typeof(Dictionary<,>))
             {
-                Type keyType = type.GetGenericArguments()[0];
+                var keyType = type.GetGenericArguments()[0];
 
                 //Refuse to output dictionary keys that aren't of type string
                 if (keyType != typeof(string))
@@ -92,17 +92,19 @@ namespace TinyJson
                 stringBuilder.Append('{');
                 IDictionary dict = item as IDictionary;
                 bool isFirst = true;
-                foreach (object key in dict.Keys)
-                {
-                    if (isFirst)
-                        isFirst = false;
-                    else
-                        stringBuilder.Append(',');
-                    stringBuilder.Append('\"');
-                    stringBuilder.Append((string)key);
-                    stringBuilder.Append("\":");
-                    AppendValue(stringBuilder, dict[key]);
-                }
+                if (dict != null)
+                    foreach (object key in dict.Keys)
+                    {
+                        if (isFirst)
+                            isFirst = false;
+                        else
+                            stringBuilder.Append(',');
+                        stringBuilder.Append('\"');
+                        stringBuilder.Append((string) key);
+                        stringBuilder.Append("\":");
+                        AppendValue(stringBuilder, dict[key]);
+                    }
+
                 stringBuilder.Append('}');
             }
             else
@@ -111,12 +113,12 @@ namespace TinyJson
 
                 bool isFirst = true;
                 FieldInfo[] fieldInfos = type.GetFields(BindingFlags.Instance | BindingFlags.Public | BindingFlags.FlattenHierarchy);
-                for (int i = 0; i < fieldInfos.Length; i++)
+                foreach (var field in fieldInfos)
                 {
-                    if (fieldInfos[i].GetCustomAttribute<IgnoreDataMemberAttribute>() != null)
+                    if (field.GetCustomAttribute<IgnoreDataMemberAttribute>() != null)
                         continue;
 
-                    object value = fieldInfos[i].GetValue(item);
+                    object value = field.GetValue(item);
                     if (value != null)
                     {
                         if (isFirst)
@@ -124,18 +126,18 @@ namespace TinyJson
                         else
                             stringBuilder.Append(',');
                         stringBuilder.Append('\"');
-                        stringBuilder.Append(GetMemberName(fieldInfos[i]));
+                        stringBuilder.Append(GetMemberName(field));
                         stringBuilder.Append("\":");
                         AppendValue(stringBuilder, value);
                     }
                 }
                 PropertyInfo[] propertyInfo = type.GetProperties(BindingFlags.Instance | BindingFlags.Public | BindingFlags.FlattenHierarchy);
-                for (int i = 0; i<propertyInfo.Length; i++)
+                foreach (var property in propertyInfo)
                 {
-                    if (!propertyInfo[i].CanRead || propertyInfo[i].GetCustomAttribute<IgnoreDataMemberAttribute>() != null)
+                    if (!property.CanRead || property.GetCustomAttribute<IgnoreDataMemberAttribute>() != null)
                         continue;
 
-                    object value = propertyInfo[i].GetValue(item, null);
+                    object value = property.GetValue(item, null);
                     if (value != null)
                     {
                         if (isFirst)
@@ -143,7 +145,7 @@ namespace TinyJson
                         else
                             stringBuilder.Append(',');
                         stringBuilder.Append('\"');
-                        stringBuilder.Append(GetMemberName(propertyInfo[i]));
+                        stringBuilder.Append(GetMemberName(property));
                         stringBuilder.Append("\":");
                         AppendValue(stringBuilder, value);
                     }
