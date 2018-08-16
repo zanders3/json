@@ -56,6 +56,7 @@ namespace TinyJson.Test
             Test(Color.Red, "\"sfdoijsdfoij\"");
             Test(Style.Bold | Style.Italic, "\"Bold, Italic\"");
             Test(Style.Bold | Style.Italic, "3");
+            Test("\u94b1\u4e0d\u591f!", "\"\u94b1\u4e0d\u591f!\"");
         }
 
         static void ArrayTest<T>(T[] expected, string json)

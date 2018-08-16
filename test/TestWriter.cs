@@ -29,6 +29,7 @@ namespace TinyJson.Test
         [TestMethod]
         public void TestValues()
         {
+            Assert.AreEqual("\"\u94b1\u4e0d\u591f!\"", "\u94b1\u4e0d\u591f!".ToJson());
             Assert.AreEqual("123", 123.ToJson());
             Assert.AreEqual("true", true.ToJson());
             Assert.AreEqual("false", false.ToJson());
