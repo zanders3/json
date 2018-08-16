@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Runtime.Serialization;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using TinyJson;
@@ -8,6 +9,23 @@ namespace TinyJson.Test
     [TestClass]
     public class TestWriter
     {
+        public enum Color
+        {
+            Red,
+            Green,
+            Blue,
+            Yellow
+        }
+
+        [Flags]
+        public enum Style
+        {
+            Bold = 1,
+            Italic = 2,
+            Underline = 4,
+            Strikethrough = 8
+        }
+
         [TestMethod]
         public void TestValues()
         {
@@ -16,6 +34,12 @@ namespace TinyJson.Test
             Assert.AreEqual("false", false.ToJson());
             Assert.AreEqual("[1,2,3]", new int[] { 1, 2, 3 }.ToJson());
             Assert.AreEqual("[1,2,3]", new List<int> { 1, 2, 3 }.ToJson());
+            Assert.AreEqual("\"Green\"", Color.Green.ToJson());
+            Assert.AreEqual("\"Green\"", ((Color)1).ToJson());
+            Assert.AreEqual("10", ((Color)10).ToJson());
+            Assert.AreEqual("\"Bold\"", Style.Bold.ToJson());
+            Assert.AreEqual("\"Bold, Italic\"", (Style.Bold | Style.Italic).ToJson());
+            Assert.AreEqual("19", (Style.Bold | Style.Italic | (Style)16).ToJson());
         }
 
         [TestMethod]
@@ -112,6 +136,22 @@ namespace TinyJson.Test
         public void TestDataMemberObject()
         {
             Assert.AreEqual("{\"a\":10,\"B\":20,\"c\":30,\"D\":40}", new DataMemberObject { A = 10, B = 20, C = 30, D = 40 }.ToJson());
+        }
+
+        public class EnumClass
+        {
+            public Color Colors;
+            public Style Style;
+        }
+
+        [TestMethod]
+        public void TestEnumMember()
+        {
+            Assert.AreEqual("{\"Colors\":\"Green\",\"Style\":\"Bold\"}", new EnumClass { Colors = Color.Green, Style = Style.Bold }.ToJson());
+            Assert.AreEqual("{\"Colors\":\"Green\",\"Style\":\"Bold, Underline\"}", new EnumClass { Colors = Color.Green, Style = Style.Bold | Style.Underline }.ToJson());
+            Assert.AreEqual("{\"Colors\":\"Blue\",\"Style\":\"Italic, Underline\"}", new EnumClass { Colors = (Color)2, Style = (Style)6 }.ToJson());
+            Assert.AreEqual("{\"Colors\":\"Blue\",\"Style\":\"Underline\"}", new EnumClass { Colors = (Color)2, Style = (Style)4 }.ToJson());
+            Assert.AreEqual("{\"Colors\":10,\"Style\":17}", new EnumClass { Colors = (Color)10, Style = (Style)17 }.ToJson());
         }
     }
 }

@@ -173,6 +173,19 @@ namespace TinyJson
             {
                 return null;
             }
+            if (type.IsEnum)
+            {
+                if (json[0] == '"')
+                    json = json.Substring(1, json.Length - 2);
+                try
+                {
+                    return Enum.Parse(type, json, false);
+                }
+                catch
+                {
+                    return 0;
+                }
+            }
             if (type.IsArray)
             {
                 Type arrayType = type.GetElementType();

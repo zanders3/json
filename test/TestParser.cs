@@ -11,6 +11,24 @@ namespace TinyJson.Test
     [TestClass]
     public class TestParser
     {
+        public enum Color
+        {
+            Red,
+            Green,
+            Blue,
+            Yellow
+        }
+
+        [Flags]
+        public enum Style
+        {
+            None = 0,
+            Bold = 1,
+            Italic = 2,
+            Underline = 4,
+            Strikethrough = 8
+        }
+
         static void Test<T>(T expected, string json)
         {
             T value = json.FromJson<T>();
@@ -33,6 +51,11 @@ namespace TinyJson.Test
             Test(true, "true");
             Test(false, "false");
             Test<object>(null, "sfdoijsdfoij");
+            Test(Color.Green, "\"Green\"");
+            Test(Color.Blue, "2");
+            Test(Color.Red, "\"sfdoijsdfoij\"");
+            Test(Style.Bold | Style.Italic, "\"Bold, Italic\"");
+            Test(Style.Bold | Style.Italic, "3");
         }
 
         static void ArrayTest<T>(T[] expected, string json)
@@ -339,6 +362,31 @@ namespace TinyJson.Test
             Assert.AreEqual(456, value.B);
             Assert.AreEqual(789, value.C);
             Assert.AreEqual(14, value.D);
+        }
+        
+        public class EnumClass
+        {
+            public Color Colors;
+            public Style Style;
+        }
+
+        [TestMethod]
+        public void TestEnumMember()
+        {
+            EnumClass value = "{\"Colors\":\"Green\",\"Style\":\"Bold, Underline\"}".FromJson<EnumClass>();
+            Assert.IsNotNull(value);
+            Assert.AreEqual(Color.Green, value.Colors);
+            Assert.AreEqual(Style.Bold | Style.Underline, value.Style);
+
+            value = "{\"Colors\":3,\"Style\":10}".FromJson<EnumClass>();
+            Assert.IsNotNull(value);
+            Assert.AreEqual(Color.Yellow, value.Colors);
+            Assert.AreEqual(Style.Italic | Style.Strikethrough, value.Style);
+
+            value = "{\"Colors\":\"sfdoijsdfoij\",\"Style\":\"sfdoijsdfoij\"}".FromJson<EnumClass>();
+            Assert.IsNotNull(value);
+            Assert.AreEqual(Color.Red, value.Colors);
+            Assert.AreEqual(Style.None, value.Style);
         }
     }
 }

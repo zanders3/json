@@ -63,6 +63,29 @@ namespace TinyJson
             {
                 stringBuilder.Append(((bool)item) ? "true" : "false");
             }
+            else if (type.IsEnum)
+            {
+                bool isEnumDefined = type.IsEnumDefined(item);
+                if (!isEnumDefined && type.IsDefined(typeof(FlagsAttribute), false))
+                {
+                    // Check if all the flags are defined
+                    int itemValue = (int)item;
+                    var enumValues = (int[])Enum.GetValues(type);
+                    for (int i = 0; i < enumValues.Length; i++)
+                        itemValue &= ~enumValues[i];
+
+                    isEnumDefined = (itemValue == 0);
+                }
+
+                if (isEnumDefined)
+                {
+                    stringBuilder.Append('"');
+                    stringBuilder.Append(item.ToString());
+                    stringBuilder.Append('"');
+                }
+                else
+                    stringBuilder.Append((int)item);
+            }
             else if (item is IList)
             {
                 stringBuilder.Append('[');
