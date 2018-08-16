@@ -131,7 +131,7 @@ namespace TinyJson
             {
                 if (json.Length <= 2)
                     return string.Empty;
-                StringBuilder stringBuilder = new StringBuilder();
+                StringBuilder parseStringBuilder = new StringBuilder(json.Length);
                 for (int i = 1; i<json.Length-1; ++i)
                 {
                     if (json[i] == '\\' && i + 1 < json.Length - 1)
@@ -139,7 +139,7 @@ namespace TinyJson
                         int j = "\"\\nrtbf/".IndexOf(json[i + 1]);
                         if (j >= 0)
                         {
-                            stringBuilder.Append("\"\\\n\r\t\b\f/"[j]);
+                            parseStringBuilder.Append("\"\\\n\r\t\b\f/"[j]);
                             ++i;
                             continue;
                         }
@@ -148,15 +148,15 @@ namespace TinyJson
                             UInt32 c = 0;
                             if (UInt32.TryParse(json.Substring(i + 2, 4), System.Globalization.NumberStyles.AllowHexSpecifier, null, out c))
                             {
-                                stringBuilder.Append((char)c);
+                                parseStringBuilder.Append((char)c);
                                 i += 5;
                                 continue;
                             }
                         }
                     }
-                    stringBuilder.Append(json[i]);
+                    parseStringBuilder.Append(json[i]);
                 }
-                return stringBuilder.ToString();
+                return parseStringBuilder.ToString();
             }
             if (type.IsPrimitive)
             {
@@ -314,15 +314,13 @@ namespace TinyJson
                 if (member.IsDefined(typeof(IgnoreDataMemberAttribute), false))
                     continue;
 
-                string name;
-
+                string name = member.Name;
                 if (member.IsDefined(typeof(IgnoreDataMemberAttribute), false))
                 {
                     DataMemberAttribute dataMemberAttribute = member.GetCustomAttribute<DataMemberAttribute>();
-                    name = dataMemberAttribute.IsNameSetExplicitly ? dataMemberAttribute.Name : member.Name;
+                    if (dataMemberAttribute.IsNameSetExplicitly)
+                        name = dataMemberAttribute.Name;
                 }
-                else
-                    name = member.Name;
 
                 nameToMember.Add(name, member);
             }
