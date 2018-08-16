@@ -179,7 +179,7 @@ namespace TinyJson
                     json = json.Substring(1, json.Length - 2);
                 try
                 {
-                    return Enum.Parse(type, json, true);
+                    return Enum.Parse(type, json, false);
                 }
                 catch
                 {
