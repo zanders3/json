@@ -30,6 +30,11 @@ Limitations:
 - Limited to parsing <2GB JSON files (due to int.MaxValue)
 - Parsing of abstract classes or interfaces is NOT supported and will throw an exception.
 
+## Changelog
+
+- v1.1 Support added for Enums and fixed Unity compilation
+- v1.0 Initial Release
+
 ## Example Usage
 
 This example will write a list of ints to a File and read it back again:
