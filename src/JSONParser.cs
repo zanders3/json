@@ -311,13 +311,16 @@ namespace TinyJson
             for (int i = 0; i < members.Length; i++)
             {
                 T member = members[i];
-                if (member.GetCustomAttribute<IgnoreDataMemberAttribute>() != null)
+                if (member.IsDefined(typeof(IgnoreDataMemberAttribute), false))
                     continue;
 
                 string name;
-                DataMemberAttribute dataMemberAttribute = member.GetCustomAttribute<DataMemberAttribute>();
-                if (dataMemberAttribute != null && dataMemberAttribute.IsNameSetExplicitly)
-                    name = dataMemberAttribute.Name;
+
+                if (member.IsDefined(typeof(IgnoreDataMemberAttribute), false))
+                {
+                    DataMemberAttribute dataMemberAttribute = member.GetCustomAttribute<DataMemberAttribute>();
+                    name = dataMemberAttribute.IsNameSetExplicitly ? dataMemberAttribute.Name : member.Name;
+                }
                 else
                     name = member.Name;
 

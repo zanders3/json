@@ -136,7 +136,7 @@ namespace TinyJson
                 FieldInfo[] fieldInfos = type.GetFields(BindingFlags.Instance | BindingFlags.Public | BindingFlags.FlattenHierarchy);
                 for (int i = 0; i < fieldInfos.Length; i++)
                 {
-                    if (fieldInfos[i].IsDefined(typeof(IgnoreDataMemberAttribute)))
+                    if (fieldInfos[i].IsDefined(typeof(IgnoreDataMemberAttribute), false))
                         continue;
 
                     object value = fieldInfos[i].GetValue(item);
@@ -155,7 +155,7 @@ namespace TinyJson
                 PropertyInfo[] propertyInfo = type.GetProperties(BindingFlags.Instance | BindingFlags.Public | BindingFlags.FlattenHierarchy);
                 for (int i = 0; i<propertyInfo.Length; i++)
                 {
-                    if (!propertyInfo[i].CanRead || fieldInfos[i].IsDefined(typeof(IgnoreDataMemberAttribute)))
+                    if (!propertyInfo[i].CanRead || fieldInfos[i].IsDefined(typeof(IgnoreDataMemberAttribute), false))
                         continue;
 
                     object value = propertyInfo[i].GetValue(item, null);
@@ -178,7 +178,7 @@ namespace TinyJson
 
         static string GetMemberName(MemberInfo member)
         {
-            if (member.IsDefined(typeof(DataMemberAttribute)))
+            if (member.IsDefined(typeof(DataMemberAttribute), false))
             {
                 DataMemberAttribute dataMemberAttribute = member.GetCustomAttribute<DataMemberAttribute>();
                 if (dataMemberAttribute.IsNameSetExplicitly)
