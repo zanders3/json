@@ -34,10 +34,10 @@ namespace TinyJson
         public static T FromJson<T>(this string json)
         {
             // Initialize, if needed, the ThreadStatic variables
-            if (null == propertyInfoCache) propertyInfoCache = new Dictionary<Type, Dictionary<string, PropertyInfo>>();
-            if (null == fieldInfoCache) fieldInfoCache = new Dictionary<Type, Dictionary<string, FieldInfo>>();
-            if (null == stringBuilder) stringBuilder = new StringBuilder();
-            if (null == splitArrayPool) splitArrayPool = new Stack<List<string>>();
+            if (propertyInfoCache == null) propertyInfoCache = new Dictionary<Type, Dictionary<string, PropertyInfo>>();
+            if (fieldInfoCache == null) fieldInfoCache = new Dictionary<Type, Dictionary<string, FieldInfo>>();
+            if (stringBuilder == null) stringBuilder = new StringBuilder();
+            if (splitArrayPool == null) splitArrayPool = new Stack<List<string>>();
 
             //Remove all whitespace not within strings to make parsing simpler
             stringBuilder.Length = 0;
@@ -310,20 +310,22 @@ namespace TinyJson
             Dictionary<string, T> nameToMember = new Dictionary<string, T>(StringComparer.OrdinalIgnoreCase);
             for (int i = 0; i < members.Length; i++)
             {
-                T member = members[i];
-                if (member.GetCustomAttribute<IgnoreDataMemberAttribute>() != null)
-                    continue;
-
-                string name;
-                DataMemberAttribute dataMemberAttribute = member.GetCustomAttribute<DataMemberAttribute>();
-                if (dataMemberAttribute != null && dataMemberAttribute.IsNameSetExplicitly)
-                    name = dataMemberAttribute.Name;
-                else
-                    name = member.Name;
-
-                nameToMember.Add(name, member);
+                object[] attribs = members[i].GetCustomAttributes(true);
+                string name = members[i].Name;
+                for (int j = 0; j<attribs.Length; j++) 
+                {
+                    if (attribs[j] is IgnoreDataMemberAttribute) 
+                    {
+                        name = null; break;
+                    }
+                    else if (attribs[j] is DataMemberAttribute && !string.IsNullOrEmpty(((DataMemberAttribute)attribs[j]).Name))
+                    {
+                        name = ((DataMemberAttribute)attribs[j]).Name;
+                    }
+                }
+                if (name != null)
+                    nameToMember.Add(name, members[i]);
             }
-
             return nameToMember;
         }
 
@@ -340,14 +342,12 @@ namespace TinyJson
             Dictionary<string, PropertyInfo> nameToProperty;
             if (!fieldInfoCache.TryGetValue(type, out nameToField))
             {
-                FieldInfo[] fields = type.GetFields(BindingFlags.Instance | BindingFlags.Public | BindingFlags.FlattenHierarchy);
-                nameToField = CreateMemberNameDictionary(fields);
+                nameToField = CreateMemberNameDictionary(type.GetFields(BindingFlags.Instance | BindingFlags.Public | BindingFlags.FlattenHierarchy));
                 fieldInfoCache.Add(type, nameToField);
             }
             if (!propertyInfoCache.TryGetValue(type, out nameToProperty))
             {
-                PropertyInfo[] properties = type.GetProperties(BindingFlags.Instance | BindingFlags.Public | BindingFlags.FlattenHierarchy);
-                nameToProperty = CreateMemberNameDictionary(properties);
+                nameToProperty = CreateMemberNameDictionary(type.GetProperties(BindingFlags.Instance | BindingFlags.Public | BindingFlags.FlattenHierarchy));
                 propertyInfoCache.Add(type, nameToProperty);
             }
 
