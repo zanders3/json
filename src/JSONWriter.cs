@@ -163,7 +163,7 @@ namespace TinyJson
         {
             if (member.IsDefined(typeof(DataMemberAttribute), true))
             {
-                DataMemberAttribute dataMemberAttribute = member.GetCustomAttribute<DataMemberAttribute>(true);
+                DataMemberAttribute dataMemberAttribute = (DataMemberAttribute)Attribute.GetCustomAttribute(member, typeof(DataMemberAttribute), true);
                 if (!string.IsNullOrEmpty(dataMemberAttribute.Name))
                     return dataMemberAttribute.Name;
             }

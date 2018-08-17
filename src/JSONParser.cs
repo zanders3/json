@@ -317,7 +317,7 @@ namespace TinyJson
                 string name = member.Name;
                 if (member.IsDefined(typeof(DataMemberAttribute), true))
                 {
-                    DataMemberAttribute dataMemberAttribute = member.GetCustomAttribute<DataMemberAttribute>(true);
+                    DataMemberAttribute dataMemberAttribute = (DataMemberAttribute)Attribute.GetCustomAttribute(member, typeof(DataMemberAttribute), true);
                     if (!string.IsNullOrEmpty(dataMemberAttribute.Name))
                         name = dataMemberAttribute.Name;
                 }
