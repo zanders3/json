@@ -65,26 +65,9 @@ namespace TinyJson
             }
             else if (type.IsEnum)
             {
-                bool isEnumDefined = type.IsEnumDefined(item);
-                if (!isEnumDefined && type.IsDefined(typeof(FlagsAttribute), false))
-                {
-                    // Check if all the flags are defined
-                    int itemValue = (int)item;
-                    var enumValues = (int[])Enum.GetValues(type);
-                    for (int i = 0; i < enumValues.Length; i++)
-                        itemValue &= ~enumValues[i];
-
-                    isEnumDefined = (itemValue == 0);
-                }
-
-                if (isEnumDefined)
-                {
-                    stringBuilder.Append('"');
-                    stringBuilder.Append(item.ToString());
-                    stringBuilder.Append('"');
-                }
-                else
-                    stringBuilder.Append((int)item);
+                stringBuilder.Append('"');
+                stringBuilder.Append(item.ToString());
+                stringBuilder.Append('"');
             }
             else if (item is IList)
             {
@@ -136,7 +119,7 @@ namespace TinyJson
                 FieldInfo[] fieldInfos = type.GetFields(BindingFlags.Instance | BindingFlags.Public | BindingFlags.FlattenHierarchy);
                 for (int i = 0; i < fieldInfos.Length; i++)
                 {
-                    if (fieldInfos[i].IsDefined(typeof(IgnoreDataMemberAttribute), false))
+                    if (fieldInfos[i].IsDefined(typeof(IgnoreDataMemberAttribute), true))
                         continue;
 
                     object value = fieldInfos[i].GetValue(item);
@@ -155,7 +138,7 @@ namespace TinyJson
                 PropertyInfo[] propertyInfo = type.GetProperties(BindingFlags.Instance | BindingFlags.Public | BindingFlags.FlattenHierarchy);
                 for (int i = 0; i<propertyInfo.Length; i++)
                 {
-                    if (!propertyInfo[i].CanRead || fieldInfos[i].IsDefined(typeof(IgnoreDataMemberAttribute), false))
+                    if (!propertyInfo[i].CanRead || propertyInfo[i].IsDefined(typeof(IgnoreDataMemberAttribute), true))
                         continue;
 
                     object value = propertyInfo[i].GetValue(item, null);
@@ -178,10 +161,10 @@ namespace TinyJson
 
         static string GetMemberName(MemberInfo member)
         {
-            if (member.IsDefined(typeof(DataMemberAttribute), false))
+            if (member.IsDefined(typeof(DataMemberAttribute), true))
             {
-                DataMemberAttribute dataMemberAttribute = member.GetCustomAttribute<DataMemberAttribute>();
-                if (dataMemberAttribute.IsNameSetExplicitly)
+                DataMemberAttribute dataMemberAttribute = member.GetCustomAttribute<DataMemberAttribute>(true);
+                if (!string.IsNullOrEmpty(dataMemberAttribute.Name))
                     return dataMemberAttribute.Name;
             }
 

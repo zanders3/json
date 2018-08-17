@@ -20,6 +20,7 @@ namespace TinyJson.Test
         [Flags]
         public enum Style
         {
+            None = 0,
             Bold = 1,
             Italic = 2,
             Underline = 4,
@@ -29,6 +30,7 @@ namespace TinyJson.Test
         [TestMethod]
         public void TestValues()
         {
+            Assert.AreEqual("\"\u94b1\u4e0d\u591f!\"", "\u94b1\u4e0d\u591f!".ToJson());
             Assert.AreEqual("123", 123.ToJson());
             Assert.AreEqual("true", true.ToJson());
             Assert.AreEqual("false", false.ToJson());
@@ -36,10 +38,10 @@ namespace TinyJson.Test
             Assert.AreEqual("[1,2,3]", new List<int> { 1, 2, 3 }.ToJson());
             Assert.AreEqual("\"Green\"", Color.Green.ToJson());
             Assert.AreEqual("\"Green\"", ((Color)1).ToJson());
-            Assert.AreEqual("10", ((Color)10).ToJson());
+            Assert.AreEqual("\"10\"", ((Color)10).ToJson());
             Assert.AreEqual("\"Bold\"", Style.Bold.ToJson());
             Assert.AreEqual("\"Bold, Italic\"", (Style.Bold | Style.Italic).ToJson());
-            Assert.AreEqual("19", (Style.Bold | Style.Italic | (Style)16).ToJson());
+            Assert.AreEqual("\"19\"", (Style.Bold | Style.Italic | (Style)16).ToJson());
         }
 
         [TestMethod]
@@ -151,7 +153,7 @@ namespace TinyJson.Test
             Assert.AreEqual("{\"Colors\":\"Green\",\"Style\":\"Bold, Underline\"}", new EnumClass { Colors = Color.Green, Style = Style.Bold | Style.Underline }.ToJson());
             Assert.AreEqual("{\"Colors\":\"Blue\",\"Style\":\"Italic, Underline\"}", new EnumClass { Colors = (Color)2, Style = (Style)6 }.ToJson());
             Assert.AreEqual("{\"Colors\":\"Blue\",\"Style\":\"Underline\"}", new EnumClass { Colors = (Color)2, Style = (Style)4 }.ToJson());
-            Assert.AreEqual("{\"Colors\":10,\"Style\":17}", new EnumClass { Colors = (Color)10, Style = (Style)17 }.ToJson());
+            Assert.AreEqual("{\"Colors\":\"10\",\"Style\":\"17\"}", new EnumClass { Colors = (Color)10, Style = (Style)17 }.ToJson());
         }
     }
 }

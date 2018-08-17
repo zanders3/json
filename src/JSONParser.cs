@@ -34,10 +34,10 @@ namespace TinyJson
         public static T FromJson<T>(this string json)
         {
             // Initialize, if needed, the ThreadStatic variables
-            if (null == propertyInfoCache) propertyInfoCache = new Dictionary<Type, Dictionary<string, PropertyInfo>>();
-            if (null == fieldInfoCache) fieldInfoCache = new Dictionary<Type, Dictionary<string, FieldInfo>>();
-            if (null == stringBuilder) stringBuilder = new StringBuilder();
-            if (null == splitArrayPool) splitArrayPool = new Stack<List<string>>();
+            if (propertyInfoCache == null) propertyInfoCache = new Dictionary<Type, Dictionary<string, PropertyInfo>>();
+            if (fieldInfoCache == null) fieldInfoCache = new Dictionary<Type, Dictionary<string, FieldInfo>>();
+            if (stringBuilder == null) stringBuilder = new StringBuilder();
+            if (splitArrayPool == null) splitArrayPool = new Stack<List<string>>();
 
             //Remove all whitespace not within strings to make parsing simpler
             stringBuilder.Length = 0;
@@ -311,14 +311,14 @@ namespace TinyJson
             for (int i = 0; i < members.Length; i++)
             {
                 T member = members[i];
-                if (member.IsDefined(typeof(IgnoreDataMemberAttribute), false))
+                if (member.IsDefined(typeof(IgnoreDataMemberAttribute), true))
                     continue;
 
                 string name = member.Name;
-                if (member.IsDefined(typeof(IgnoreDataMemberAttribute), false))
+                if (member.IsDefined(typeof(DataMemberAttribute), true))
                 {
-                    DataMemberAttribute dataMemberAttribute = member.GetCustomAttribute<DataMemberAttribute>();
-                    if (dataMemberAttribute.IsNameSetExplicitly)
+                    DataMemberAttribute dataMemberAttribute = member.GetCustomAttribute<DataMemberAttribute>(true);
+                    if (!string.IsNullOrEmpty(dataMemberAttribute.Name))
                         name = dataMemberAttribute.Name;
                 }
 
@@ -341,14 +341,12 @@ namespace TinyJson
             Dictionary<string, PropertyInfo> nameToProperty;
             if (!fieldInfoCache.TryGetValue(type, out nameToField))
             {
-                FieldInfo[] fields = type.GetFields(BindingFlags.Instance | BindingFlags.Public | BindingFlags.FlattenHierarchy);
-                nameToField = CreateMemberNameDictionary(fields);
+                nameToField = CreateMemberNameDictionary(type.GetFields(BindingFlags.Instance | BindingFlags.Public | BindingFlags.FlattenHierarchy));
                 fieldInfoCache.Add(type, nameToField);
             }
             if (!propertyInfoCache.TryGetValue(type, out nameToProperty))
             {
-                PropertyInfo[] properties = type.GetProperties(BindingFlags.Instance | BindingFlags.Public | BindingFlags.FlattenHierarchy);
-                nameToProperty = CreateMemberNameDictionary(properties);
+                nameToProperty = CreateMemberNameDictionary(type.GetProperties(BindingFlags.Instance | BindingFlags.Public | BindingFlags.FlattenHierarchy));
                 propertyInfoCache.Add(type, nameToProperty);
             }
 
