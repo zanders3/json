@@ -20,6 +20,7 @@ namespace TinyJson.Test
         [Flags]
         public enum Style
         {
+            None = 0,
             Bold = 1,
             Italic = 2,
             Underline = 4,

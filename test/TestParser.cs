@@ -53,10 +53,12 @@ namespace TinyJson.Test
             Test<object>(null, "sfdoijsdfoij");
             Test(Color.Green, "\"Green\"");
             Test(Color.Blue, "2");
+            Test(Color.Blue, "\"2\"");
             Test(Color.Red, "\"sfdoijsdfoij\"");
             Test(Style.Bold | Style.Italic, "\"Bold, Italic\"");
             Test(Style.Bold | Style.Italic, "3");
             Test("\u94b1\u4e0d\u591f!", "\"\u94b1\u4e0d\u591f!\"");
+            Test("\u94b1\u4e0d\u591f!", "\"\\u94b1\\u4e0d\\u591f!\"");
         }
 
         static void ArrayTest<T>(T[] expected, string json)
@@ -364,7 +366,7 @@ namespace TinyJson.Test
             Assert.AreEqual(789, value.C);
             Assert.AreEqual(14, value.D);
         }
-        
+
         public class EnumClass
         {
             public Color Colors;
@@ -380,6 +382,11 @@ namespace TinyJson.Test
             Assert.AreEqual(Style.Bold | Style.Underline, value.Style);
 
             value = "{\"Colors\":3,\"Style\":10}".FromJson<EnumClass>();
+            Assert.IsNotNull(value);
+            Assert.AreEqual(Color.Yellow, value.Colors);
+            Assert.AreEqual(Style.Italic | Style.Strikethrough, value.Style);
+
+            value = "{\"Colors\":\"3\",\"Style\":\"10\"}".FromJson<EnumClass>();
             Assert.IsNotNull(value);
             Assert.AreEqual(Color.Yellow, value.Colors);
             Assert.AreEqual(Style.Italic | Style.Strikethrough, value.Style);

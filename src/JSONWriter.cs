@@ -161,12 +161,13 @@ namespace TinyJson
 
         static string GetMemberName(MemberInfo member)
         {
-            object[] attribs = member.GetCustomAttributes(typeof(DataMemberAttribute), true);
-            for (int i = 0; i<attribs.Length; ++i) 
+            if (member.IsDefined(typeof(DataMemberAttribute), true))
             {
-                if (attribs[i] is DataMemberAttribute && !string.IsNullOrEmpty(((DataMemberAttribute)attribs[0]).Name)) 
-                    return ((DataMemberAttribute)attribs[0]).Name;
+                DataMemberAttribute dataMemberAttribute = (DataMemberAttribute)Attribute.GetCustomAttribute(member, typeof(DataMemberAttribute), true);
+                if (!string.IsNullOrEmpty(dataMemberAttribute.Name))
+                    return dataMemberAttribute.Name;
             }
+
             return member.Name;
         }
     }

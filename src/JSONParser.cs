@@ -131,7 +131,7 @@ namespace TinyJson
             {
                 if (json.Length <= 2)
                     return string.Empty;
-                StringBuilder stringBuilder = new StringBuilder();
+                StringBuilder parseStringBuilder = new StringBuilder(json.Length);
                 for (int i = 1; i<json.Length-1; ++i)
                 {
                     if (json[i] == '\\' && i + 1 < json.Length - 1)
@@ -139,7 +139,7 @@ namespace TinyJson
                         int j = "\"\\nrtbf/".IndexOf(json[i + 1]);
                         if (j >= 0)
                         {
-                            stringBuilder.Append("\"\\\n\r\t\b\f/"[j]);
+                            parseStringBuilder.Append("\"\\\n\r\t\b\f/"[j]);
                             ++i;
                             continue;
                         }
@@ -148,15 +148,15 @@ namespace TinyJson
                             UInt32 c = 0;
                             if (UInt32.TryParse(json.Substring(i + 2, 4), System.Globalization.NumberStyles.AllowHexSpecifier, null, out c))
                             {
-                                stringBuilder.Append((char)c);
+                                parseStringBuilder.Append((char)c);
                                 i += 5;
                                 continue;
                             }
                         }
                     }
-                    stringBuilder.Append(json[i]);
+                    parseStringBuilder.Append(json[i]);
                 }
-                return stringBuilder.ToString();
+                return parseStringBuilder.ToString();
             }
             if (type.IsPrimitive)
             {
@@ -310,22 +310,21 @@ namespace TinyJson
             Dictionary<string, T> nameToMember = new Dictionary<string, T>(StringComparer.OrdinalIgnoreCase);
             for (int i = 0; i < members.Length; i++)
             {
-                object[] attribs = members[i].GetCustomAttributes(true);
-                string name = members[i].Name;
-                for (int j = 0; j<attribs.Length; j++) 
+                T member = members[i];
+                if (member.IsDefined(typeof(IgnoreDataMemberAttribute), true))
+                    continue;
+
+                string name = member.Name;
+                if (member.IsDefined(typeof(DataMemberAttribute), true))
                 {
-                    if (attribs[j] is IgnoreDataMemberAttribute) 
-                    {
-                        name = null; break;
-                    }
-                    else if (attribs[j] is DataMemberAttribute && !string.IsNullOrEmpty(((DataMemberAttribute)attribs[j]).Name))
-                    {
-                        name = ((DataMemberAttribute)attribs[j]).Name;
-                    }
+                    DataMemberAttribute dataMemberAttribute = (DataMemberAttribute)Attribute.GetCustomAttribute(member, typeof(DataMemberAttribute), true);
+                    if (!string.IsNullOrEmpty(dataMemberAttribute.Name))
+                        name = dataMemberAttribute.Name;
                 }
-                if (name != null)
-                    nameToMember.Add(name, members[i]);
+
+                nameToMember.Add(name, member);
             }
+
             return nameToMember;
         }
 
