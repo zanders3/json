@@ -59,6 +59,9 @@ namespace TinyJson
             {
                 stringBuilder.Append(((double)item).ToString(System.Globalization.CultureInfo.InvariantCulture));
             }
+            else if (type == typeof (decimal)) {
+                stringBuilder.Append (((decimal)item).ToString (System.Globalization.CultureInfo.InvariantCulture));
+            }
             else if (type == typeof(bool))
             {
                 stringBuilder.Append(((bool)item) ? "true" : "false");
