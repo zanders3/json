@@ -13,11 +13,13 @@ namespace TinyJson
     //- Will only output public fields and property getters on objects
     public static class JSONWriter
     {
-        public static string ToJson(this object item)
+        public static string ToJson(this object item, bool makeBeautiful = false)
         {
             StringBuilder stringBuilder = new StringBuilder();
             AppendValue(stringBuilder, item);
-            return stringBuilder.ToString();
+            return makeBeautiful ?
+                MakeBeautiful(stringBuilder.ToString().ToArray()).ToString() :
+                stringBuilder.ToString();
         }
 
         static void AppendValue(StringBuilder stringBuilder, object item)
@@ -172,6 +174,115 @@ namespace TinyJson
             }
 
             return member.Name;
+        }
+
+        private static string GetTabs(int level)
+        {
+            if (level == 0)
+                return null;
+
+
+            var chars = new char[level];
+            for (int i = 0; i < chars.Length; i++)
+            {
+                chars[i] = '\t';
+            }
+
+            return new string(chars);
+        }
+
+        private static StringBuilder MakeBeautiful(char[] chars)
+        {
+            var newStringBuilder = new StringBuilder();
+            var tabs = 0;
+
+            //char? chrRight;
+            char? chrLeft = null;
+            for (var i = 0; i < chars.Length; i++)
+            {
+                var chr = chars[i];
+                switch (chr)
+                {
+                    case '[':
+                        if (chrLeft.HasValue && chrLeft == ',')
+                        {
+                            newStringBuilder.Append('\n');
+                            newStringBuilder.Append($"{GetTabs(tabs)}{chr}");
+                        }
+                        else
+                        {
+                            newStringBuilder.Append(chr);
+                        }
+
+                        tabs++;
+                        break;
+                    case ']':
+                        tabs--;
+                        newStringBuilder.Append($"\n{GetTabs(tabs)}{chr}");
+                        break;
+                    case '{':
+                        if (chrLeft.HasValue && (chrLeft == ',' || chrLeft == '['))
+                        {
+                            newStringBuilder.Append('\n');
+                            newStringBuilder.Append($"{GetTabs(tabs)}{chr}");
+                        }
+                        else
+                        {
+                            newStringBuilder.Append(chr);
+                        }
+
+                        tabs++;
+                        break;
+                    case '}':
+                        tabs--;
+                        newStringBuilder.Append($"\n{GetTabs(tabs)}{chr}");
+                        break;
+                    case '"':
+                        if (chrLeft.HasValue && (chrLeft == '{' || chrLeft == '[' || chrLeft == ',' || chrLeft == ':'))
+                        {
+                            if (chrLeft != ':')
+                            {
+                                newStringBuilder.Append('\n');
+                                newStringBuilder.Append($"{GetTabs(tabs)}{chr}");
+                            }
+                            else
+                            {
+                                newStringBuilder.Append(chr);
+                            }
+
+
+                            var nextIndex = GetNextChar(chars, i + 1);
+                            newStringBuilder.Append(new string(chars, i + 1, nextIndex - i - 1));
+                            i = nextIndex - 1;
+                            chr = chars[i];
+                        }
+                        else
+                        {
+                            newStringBuilder.Append(chr);
+                        }
+
+                        break;
+                    default:
+                        newStringBuilder.Append(chr);
+                        break;
+                }
+
+
+                chrLeft = chr;
+            }
+            return newStringBuilder;
+        }
+
+        private static int GetNextChar(char[] chars, in int start)
+        {
+            for (var i = start; i < chars.Length; i++)
+            {
+                var chr = chars[i];
+                if (chr == '"' && chars[i - 2] != '\\')
+                    return i;
+            }
+
+            return -1;
         }
     }
 }
