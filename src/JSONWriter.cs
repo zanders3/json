@@ -29,10 +29,10 @@ namespace TinyJson
             }
 
             Type type = item.GetType();
-            if (type == typeof(string))
+            if (type == typeof(string) || type == typeof(char))
             {
                 stringBuilder.Append('"');
-                string str = (string)item;
+                string str = item.ToString();
                 for (int i = 0; i<str.Length; ++i)
                     if (str[i] < ' ' || str[i] == '"' || str[i] == '\\')
                     {
@@ -47,7 +47,19 @@ namespace TinyJson
                         stringBuilder.Append(str[i]);
                 stringBuilder.Append('"');
             }
-            else if (type == typeof(byte) || type == typeof(int))
+            else if (type == typeof(byte) || type == typeof(sbyte))
+            {
+                stringBuilder.Append(item.ToString());
+            }
+            else if (type == typeof(short) || type == typeof(ushort))
+            {
+                stringBuilder.Append(item.ToString());
+            }
+            else if (type == typeof(int) || type == typeof(uint))
+            {
+                stringBuilder.Append(item.ToString());
+            }
+            else if (type == typeof(long) || type == typeof(ulong))
             {
                 stringBuilder.Append(item.ToString());
             }
