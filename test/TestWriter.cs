@@ -155,5 +155,45 @@ namespace TinyJson.Test
             Assert.AreEqual("{\"Colors\":\"Blue\",\"Style\":\"Underline\"}", new EnumClass { Colors = (Color)2, Style = (Style)4 }.ToJson());
             Assert.AreEqual("{\"Colors\":\"10\",\"Style\":\"17\"}", new EnumClass { Colors = (Color)10, Style = (Style)17 }.ToJson());
         }
+
+        public class PrimitiveObject
+        {
+            public bool Bool;
+            public byte Byte;
+            public sbyte SByte;
+            public short Short;
+            public ushort UShort;
+            public int Int;
+            public uint UInt;
+            public long Long;
+            public ulong ULong;
+            public char Char;
+            public float Single;
+            public double Double;
+            public decimal Decimal;
+        }
+
+        [TestMethod]
+        public void TestPrimitives()
+        {
+            Assert.AreEqual(
+                "{\"Bool\":true,\"Byte\":17,\"SByte\":-17,\"Short\":-123,\"UShort\":123,\"Int\":-56,\"UInt\":56,\"Long\":-34,\"ULong\":34,\"Char\":\"C\",\"Single\":4.3,\"Double\":5.6,\"Decimal\":10.1}",
+                new PrimitiveObject
+                {
+                    Bool = true,
+                    Byte = 17,
+                    SByte = -17,
+                    Short = -123,
+                    UShort = 123,
+                    Int = -56,
+                    UInt = 56,
+                    Long = -34,
+                    ULong = 34,
+                    Char = 'C',
+                    Single = 4.3f,
+                    Double = 5.6,
+                    Decimal = 10.1M
+                }.ToJson());
+        }
     }
 }
