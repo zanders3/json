@@ -396,5 +396,44 @@ namespace TinyJson.Test
             Assert.AreEqual(Color.Red, value.Colors);
             Assert.AreEqual(Style.None, value.Style);
         }
+
+        [TestMethod]
+        public void TestDuplicateKeys()
+        {
+            var parsed = @"{""hello"": ""world"", ""goodbye"": ""heaven"", ""hello"": ""hell""}".FromJson<Dictionary<string, object>>();
+            /*
+             * We expect the parser to process the (valid) JSON above containing a duplicated key. The dictionary ensures that there is
+             * only one entry with the duplicate key.
+             */
+            Assert.IsTrue(parsed.ContainsKey("hello"), "The dictionary is missing the duplicated key");
+            /*
+             * We also expect the other keys in the JSON to be processed as normal
+             */
+            Assert.IsTrue(parsed.ContainsKey("goodbye"), "The dictionary is missing the non-duplicated key");
+            /*
+             * The parser should store the last occurring value for the given key
+             */
+            Assert.AreEqual(parsed["hello"], "hell", "The parser stored an incorrect value for the duplicated key");
+        }
+
+        [TestMethod]
+        public void TestDuplicateKeysInAnonymousObject()
+        {
+            var parsed = @"{""hello"": ""world"", ""goodbye"": ""heaven"", ""hello"": ""hell""}".FromJson<object>();
+            var dictionary = (Dictionary<string, object>)parsed;
+            /*
+             * We expect the parser to process the (valid) JSON above containing a duplicated key. The dictionary ensures that there is
+             * only one entry with the duplicate key.
+             */
+            Assert.IsTrue(dictionary.ContainsKey("hello"), "The dictionary is missing the duplicated key");
+            /*
+             * We also expect the other keys in the JSON to be processed as normal
+             */
+            Assert.IsTrue(dictionary.ContainsKey("goodbye"), "The dictionary is missing the non-duplicated key");
+            /*
+             * The parser should store the last occurring value for the given key
+             */
+            Assert.AreEqual(dictionary["hello"], "hell", "The parser stored an incorrect value for the duplicated key");
+        }
     }
 }

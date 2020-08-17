@@ -239,7 +239,7 @@ namespace TinyJson
                         continue;
                     string keyValue = elems[i].Substring(1, elems[i].Length - 2);
                     object val = ParseValue(valueType, elems[i + 1]);
-                    dictionary.Add(keyValue, val);
+                    dictionary[keyValue] = val;
                 }
                 return dictionary;
             }
@@ -266,7 +266,7 @@ namespace TinyJson
                     return null;
                 var dict = new Dictionary<string, object>(elems.Count / 2);
                 for (int i = 0; i < elems.Count; i += 2)
-                    dict.Add(elems[i].Substring(1, elems[i].Length - 2), ParseAnonymousValue(elems[i + 1]));
+                    dict[elems[i].Substring(1, elems[i].Length - 2)] = ParseAnonymousValue(elems[i + 1]);
                 return dict;
             }
             if (json[0] == '[' && json[json.Length - 1] == ']')
