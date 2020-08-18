@@ -33,7 +33,7 @@ namespace TinyJson
             {
                 stringBuilder.Append('"');
                 string str = item.ToString();
-                for (int i = 0; i<str.Length; ++i)
+                for (int i = 0; i < str.Length; ++i)
                     if (str[i] < ' ' || str[i] == '"' || str[i] == '\\')
                     {
                         stringBuilder.Append('\\');
@@ -71,8 +71,9 @@ namespace TinyJson
             {
                 stringBuilder.Append(((double)item).ToString(System.Globalization.CultureInfo.InvariantCulture));
             }
-            else if (type == typeof (decimal)) {
-                stringBuilder.Append (((decimal)item).ToString (System.Globalization.CultureInfo.InvariantCulture));
+            else if (type == typeof(decimal))
+            {
+                stringBuilder.Append(((decimal)item).ToString(System.Globalization.CultureInfo.InvariantCulture));
             }
             else if (type == typeof(bool))
             {
@@ -151,7 +152,7 @@ namespace TinyJson
                     }
                 }
                 PropertyInfo[] propertyInfo = type.GetProperties(BindingFlags.Instance | BindingFlags.Public | BindingFlags.FlattenHierarchy);
-                for (int i = 0; i<propertyInfo.Length; i++)
+                for (int i = 0; i < propertyInfo.Length; i++)
                 {
                     if (!propertyInfo[i].CanRead || propertyInfo[i].IsDefined(typeof(IgnoreDataMemberAttribute), true))
                         continue;
