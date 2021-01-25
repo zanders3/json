@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Reflection;
 using System.Runtime.Serialization;
 using System.Text;
@@ -126,6 +127,10 @@ namespace TinyJson
                     AppendValue(stringBuilder, dict[key]);
                 }
                 stringBuilder.Append('}');
+            }
+            else if (item is DateTime time)
+            {
+                stringBuilder.Append(time.ToString(CultureInfo.InvariantCulture));
             }
             else
             {
