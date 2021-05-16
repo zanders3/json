@@ -1,0 +1,56 @@
+name: Production Deployment
+
+on:
+  release:
+    types: [published]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Setup .NET Core
+      uses: actions/setup-dotnet@v1
+      with:
+        dotnet-version: 3.1.300
+      env:
+        NUGET_AUTH_TOKEN: ${{secrets.GITHUB_TOKEN}}
+    - name: Fetch all history for all tags and branches so we can update versions
+      run: |
+        git config remote.origin.url https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}
+        git fetch --prune --unshallow
+    - name: Install GitVersion
+      uses: gittools/actions/gitversion/setup@v0.9.6
+      with:
+        versionSpec: '5.x'
+    - name: Use GitVersion
+      id: gitversion # step id used as reference for output values
+      uses: gittools/actions/gitversion/execute@v0.9.6
+    - name: Print Version numbers
+      run: |
+        echo "Major: ${{ steps.gitversion.outputs.major }}"
+        echo "Minor: ${{ steps.gitversion.outputs.minor }}"
+        echo "Patch: ${{ steps.gitversion.outputs.patch }}"
+    - name: Install dependencies
+      run: |
+        dotnet nuget add source https://nuget.pkg.github.com/SparkVenture/index.json --name "SparkVentureGitHub-Unique" --store-password-in-clear-text --username ${{ secrets.NUGET_USER }} --password ${{ secrets.NUGET_TOKEN }}
+        dotnet nuget add source https://nuget.pkg.github.com/CardpoolGiftCards/index.json --name "CardpoolGitHub-Unique" --store-password-in-clear-text --username ${{ secrets.NUGET_USER }} --password ${{ secrets.NUGET_TOKEN }}
+        dotnet restore
+    - name: Build
+      run: dotnet build --configuration Release --no-restore /p:Version=${{ steps.gitversion.outputs.major }}.${{ steps.gitversion.outputs.minor }}.${{ steps.gitversion.outputs.patch }}.$GITHUB_RUN_NUMBER
+    - name: Test
+      run: dotnet test --no-restore --verbosity normal /p:CollectCoverage=true /p:CoverletOutput=../CoverageResults/ /p:MergeWith="../CoverageResults/coverage.json" /p:CoverletOutputFormat=\"opencover,json\" -m:1
+    - name: Running the PostDepoyment Command on Production
+      run: dotnet run -p Cardpool.Services.Risk.Console --postdeployment --connectionstring "${{ secrets.PRODUCTION_DATABASE_STRING }}"
+    - name: Publish for Azure
+      run: |
+        dotnet publish Cardpool.Services.Risk.AzureFunctions -o ./deploy /p:Version=${{ steps.gitversion.outputs.major }}.${{ steps.gitversion.outputs.minor }}.${{ steps.gitversion.outputs.patch }}.$GITHUB_RUN_NUMBER
+    - name: Deploy to Azure
+      uses: Azure/functions-action@v1
+      id: fa
+      with:
+        app-name: cp-risk-prod
+        package: ./deploy
+        publish-profile: ${{ secrets.PRODUCTION_PUBLISH_SETTINGS }}

@@ -1,0 +1,53 @@
+name: Staging Deployment
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Setup .NET Core
+      uses: actions/setup-dotnet@v1
+      with:
+        dotnet-version: 3.1.300
+      env:
+        NUGET_AUTH_TOKEN: ${{secrets.GITHUB_TOKEN}}
+    - name: Fetch all history for all tags and branches so we can update versions
+      run: |
+        git config remote.origin.url https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}
+        git fetch --prune --unshallow
+    - name: Install GitVersion
+      uses: gittools/actions/gitversion/setup@v0.9.6
+      with:
+          versionSpec: '5.x'
+    - name: Use GitVersion
+      id: gitversion # step id used as reference for output values
+      uses: gittools/actions/gitversion/execute@v0.9.6
+    - name: Print Version numbers
+      run: |
+        echo "Major: ${{ steps.gitversion.outputs.major }}"
+        echo "Minor: ${{ steps.gitversion.outputs.minor }}"
+        echo "Patch: ${{ steps.gitversion.outputs.patch }}"
+    - name: Install dependencies
+      run: |
+         dotnet restore
+    - name: Build
+      run: dotnet build --configuration Release --no-restore /p:Version=${{ steps.gitversion.outputs.major }}.${{ steps.gitversion.outputs.minor }}.${{ steps.gitversion.outputs.patch }}.$GITHUB_RUN_NUMBER
+    - name: Test
+      run: dotnet test --no-restore --verbosity normal /p:CollectCoverage=true /p:CoverletOutput=../CoverageResults/ /p:MergeWith="../CoverageResults/coverage.json" /p:CoverletOutputFormat=\"opencover,json\" -m:1
+    - name: Package
+      run: |
+        dotnet pack Cardpool.Contracts.Risk --configuration Release /p:Version=${{ steps.gitversion.outputs.major }}.${{ steps.gitversion.outputs.minor }}.${{ steps.gitversion.outputs.patch }}.$GITHUB_RUN_NUMBER --output ./packages
+        dotnet pack Cardpool.Clients.Risk --configuration Release /p:Version=${{ steps.gitversion.outputs.major }}.${{ steps.gitversion.outputs.minor }}.${{ steps.gitversion.outputs.patch }}.$GITHUB_RUN_NUMBER --output ./packages
+    - name: Publish to Nuget
+      run: |
+        dotnet nuget push ./packages/Cardpool.Contracts.Risk.*.nupkg --source "CardpoolGitHub-Unique" --api-key ${{secrets.GITHUB_TOKEN}} --skip-duplicate --no-symbols true
+        dotnet nuget push ./packages/Cardpool.Clients.Risk.*.nupkg  --source "CardpoolGitHub-Unique" --api-key ${{secrets.GITHUB_TOKEN}} --skip-duplicate --no-symbols true
+  
