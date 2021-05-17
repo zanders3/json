@@ -44,10 +44,8 @@ jobs:
       run: dotnet test --no-restore --verbosity normal /p:CollectCoverage=true /p:CoverletOutput=../CoverageResults/ /p:MergeWith="../CoverageResults/coverage.json" /p:CoverletOutputFormat=\"opencover,json\" -m:1
     - name: Package
       run: |
-        dotnet pack Cardpool.Contracts.Risk --configuration Release /p:Version=${{ steps.gitversion.outputs.major }}.${{ steps.gitversion.outputs.minor }}.${{ steps.gitversion.outputs.patch }}.$GITHUB_RUN_NUMBER --output ./packages
-        dotnet pack Cardpool.Clients.Risk --configuration Release /p:Version=${{ steps.gitversion.outputs.major }}.${{ steps.gitversion.outputs.minor }}.${{ steps.gitversion.outputs.patch }}.$GITHUB_RUN_NUMBER --output ./packages
+        dotnet pack TinyJson --configuration Release /p:Version=${{ steps.gitversion.outputs.major }}.${{ steps.gitversion.outputs.minor }}.${{ steps.gitversion.outputs.patch }}.$GITHUB_RUN_NUMBER --output ./packages
     - name: Publish to Nuget
       run: |
-        dotnet nuget push ./packages/Cardpool.Contracts.Risk.*.nupkg --source "CardpoolGitHub-Unique" --api-key ${{secrets.GITHUB_TOKEN}} --skip-duplicate --no-symbols true
-        dotnet nuget push ./packages/Cardpool.Clients.Risk.*.nupkg  --source "CardpoolGitHub-Unique" --api-key ${{secrets.GITHUB_TOKEN}} --skip-duplicate --no-symbols true
+        dotnet nuget push ./packages/TinyJson*.nupkg --source "BillGOGitHub-Unique" --api-key ${{secrets.GITHUB_TOKEN}} --skip-duplicate --no-symbols true
   
