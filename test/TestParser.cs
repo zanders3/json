@@ -439,5 +439,57 @@ namespace TinyJson.Test
              */
             Assert.AreEqual(dictionary["hello"], "hell", "The parser stored an incorrect value for the duplicated key");
         }
+
+        private class SimpleModelWithNulls
+        {
+            public string AString { get; set; }
+            public int? NullableInt { get; set; }
+            public float? NullableFloat { get; set; }
+        }
+
+        [TestMethod]
+        public void FromJson_NullString_IsParsedCorrectly()
+        {
+            // Arrange
+            var json = "{\"AString\": null}";
+
+            // Act
+            var actual = json.FromJson<SimpleModelWithNulls>();
+
+            // Assert
+            Assert.IsNull(actual.AString);
+        }
+
+        [DataTestMethod]
+        [DataRow(null)]
+        [DataRow(5)]
+        [DataRow(-1)]
+        public void FromJson_NullableInt_IsParsedCorrectly(int? value)
+        {
+            // Arrange
+            var json = "{\"NullableInt\": " + (value?.ToString() ?? "null") + "}";
+
+            // Act
+            var actual = json.FromJson<SimpleModelWithNulls>();
+
+            // Assert
+            Assert.AreEqual(value, actual.NullableInt);
+        }
+
+        [DataTestMethod]
+        [DataRow(null)]
+        [DataRow(3.0f)]
+        [DataRow(2.5f)]
+        public void FromJson_NullableFloat_IsParsedCorrectly(float? value)
+        {
+            // Arrange
+            var json = "{\"NullableFloat\": " + (value?.ToString(System.Globalization.CultureInfo.InvariantCulture) ?? "null") + "}";
+
+            // Act
+            var actual = json.FromJson<SimpleModelWithNulls>();
+
+            // Assert
+            Assert.AreEqual(value, actual.NullableFloat);
+        }
     }
 }
