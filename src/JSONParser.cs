@@ -129,8 +129,12 @@ namespace TinyJson
         {
             if (type == typeof(string))
             {
+                if (json == "null")
+                    return null;
+
                 if (json.Length <= 2)
                     return string.Empty;
+
                 StringBuilder parseStringBuilder = new StringBuilder(json.Length);
                 for (int i = 1; i < json.Length - 1; ++i)
                 {
