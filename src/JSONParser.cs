@@ -203,6 +203,11 @@ namespace TinyJson
                 splitArrayPool.Push(elems);
                 return newArray;
             }
+            if (type.IsGenericType && type.GetGenericTypeDefinition() == typeof(Nullable<>))
+            {
+                Type underlyingType = type.GetGenericArguments()[0];
+                return ParseValue(underlyingType, json);
+            }
             if (type.IsGenericType && type.GetGenericTypeDefinition() == typeof(List<>))
             {
                 Type listType = type.GetGenericArguments()[0];
