@@ -321,6 +321,7 @@ namespace TinyJson.Test
                         DynamicParserTest();
                         TestNastyStruct();
                         TestEscaping();
+                        TestDatetime();
                     }
                 }).Start();
             }
@@ -438,6 +439,13 @@ namespace TinyJson.Test
              * The parser should store the last occurring value for the given key
              */
             Assert.AreEqual(dictionary["hello"], "hell", "The parser stored an incorrect value for the duplicated key");
+        }
+
+        [TestMethod]
+        public void TestDatetime()
+        {
+            DateTime datetime = new DateTime(2021, 8, 16, 12, 24, 08);
+            Assert.AreEqual("\"08/16/2021 12:24:08\"".FromJson<DateTime>(), datetime);
         }
     }
 }

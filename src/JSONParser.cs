@@ -169,6 +169,12 @@ namespace TinyJson
                 decimal.TryParse(json, System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out result);
                 return result;
             }
+            if (type == typeof(DateTime))
+            {
+                DateTime result;
+                DateTime.TryParse(json.Replace("\"",""), System.Globalization.CultureInfo.InvariantCulture, System.Globalization.DateTimeStyles.None, out result);
+                return result;
+            }
             if (json == "null")
             {
                 return null;
