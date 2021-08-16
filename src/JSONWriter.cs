@@ -79,6 +79,12 @@ namespace TinyJson
             {
                 stringBuilder.Append(((bool)item) ? "true" : "false");
             }
+            else if (type == typeof(DateTime))
+            {
+                stringBuilder.Append('"');
+                stringBuilder.Append(((DateTime)item).ToString(System.Globalization.CultureInfo.InvariantCulture));
+                stringBuilder.Append('"');
+            }
             else if (type.IsEnum)
             {
                 stringBuilder.Append('"');

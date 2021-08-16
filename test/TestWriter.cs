@@ -171,13 +171,14 @@ namespace TinyJson.Test
             public float Single;
             public double Double;
             public decimal Decimal;
+            public DateTime Time;
         }
 
         [TestMethod]
         public void TestPrimitives()
         {
             Assert.AreEqual(
-                "{\"Bool\":true,\"Byte\":17,\"SByte\":-17,\"Short\":-123,\"UShort\":123,\"Int\":-56,\"UInt\":56,\"Long\":-34,\"ULong\":34,\"Char\":\"C\",\"Single\":4.3,\"Double\":5.6,\"Decimal\":10.1}",
+                "{\"Bool\":true,\"Byte\":17,\"SByte\":-17,\"Short\":-123,\"UShort\":123,\"Int\":-56,\"UInt\":56,\"Long\":-34,\"ULong\":34,\"Char\":\"C\",\"Single\":4.3,\"Double\":5.6,\"Decimal\":10.1,\"Time\":\"08/16/2021 00:00:00\"}",
                 new PrimitiveObject
                 {
                     Bool = true,
@@ -192,8 +193,17 @@ namespace TinyJson.Test
                     Char = 'C',
                     Single = 4.3f,
                     Double = 5.6,
-                    Decimal = 10.1M
+                    Decimal = 10.1M,
+                    Time = new DateTime(2021, 8, 16)
                 }.ToJson());
         }
+
+        [TestMethod]
+        public void TestDatetime()
+        {
+            DateTime curTime =  DateTime.Now;
+            Assert.AreEqual(curTime.ToJson(), "\"" + DateTime.Now.ToString(System.Globalization.CultureInfo.InvariantCulture) + "\"");
+        }
+
     }
 }
