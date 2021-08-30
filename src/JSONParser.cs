@@ -249,6 +249,12 @@ namespace TinyJson
                 }
                 return dictionary;
             }
+            if (type == typeof(DateTime))
+            {
+                DateTime result;
+                DateTime.TryParse(json, System.Globalization.DateTimeFormatInfo.InvariantInfo, System.Globalization.DateTimeStyles.AssumeUniversal, out result);
+                return result;
+            }
             if (type == typeof(object))
             {
                 return ParseAnonymousValue(json);

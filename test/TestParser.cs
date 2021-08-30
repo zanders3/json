@@ -38,6 +38,7 @@ namespace TinyJson.Test
         [TestMethod]
         public void TestValues()
         {
+            Test(new DateTime(), "01/01/0001 00:00:00");
             Test(12345, "12345");
             Test(12345L, "12345");
             Test(12345UL, "12345");
