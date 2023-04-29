@@ -295,5 +295,32 @@ namespace TinyJson.Test
         {
             Assert.AreEqual("{\"Ext\":true,\"Base\":true,\"Count\":2,\"foo\":123,\"bar\":321}", new DictionaryTypeExtended { { "foo", 123 }, { "bar", 321 } }.ToJson());
         }
+
+        class DynamicObjectType : System.Dynamic.DynamicObject
+        {
+            public override bool TryGetMember(System.Dynamic.GetMemberBinder binder, out object result)
+            {
+                result = null;
+
+                if (!dict_.ContainsKey(binder.Name))
+                    return false;
+
+                result = dict_[binder.Name];
+                return true;
+            }
+
+            public override IEnumerable<string> GetDynamicMemberNames()
+            {
+                return dict_.Keys;
+            }
+
+            private Dictionary<string, object> dict_ = new Dictionary<string, object> { { "Name", "TestObject" }, { "Length", 10 } };
+        }
+
+        [TestMethod]
+        public void TestDynamicObject()
+        {
+            Assert.AreEqual("{\"Name\":\"TestObject\",\"Length\":10}", new DynamicObjectType { }.ToJson());
+        }
     }
 }

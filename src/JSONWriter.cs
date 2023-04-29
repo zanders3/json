@@ -134,6 +134,36 @@ namespace TinyJson
                 }
                 stringBuilder.Append('}');
             }
+            else if (typeof(System.Dynamic.DynamicObject).IsAssignableFrom(type))
+            {
+                // support to convert DynamicObject to Json
+                stringBuilder.Append('{');
+                System.Dynamic.DynamicObject obj = item as System.Dynamic.DynamicObject;
+                bool isFirst = true;
+                foreach (var member in obj.GetDynamicMemberNames())
+                {
+                    if (isFirst)
+                    {
+                        isFirst = false;
+                    }
+                    else
+                    {
+                        stringBuilder.Append(',');
+                    }
+
+                    var binder = Microsoft.CSharp.RuntimeBinder.Binder.GetMember(Microsoft.CSharp.RuntimeBinder.CSharpBinderFlags.None, member, item.GetType()
+                        , new[] { Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo.Create(Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfoFlags.None, null) });
+
+                    var callsite = System.Runtime.CompilerServices.CallSite<Func<System.Runtime.CompilerServices.CallSite, object, object>>.Create(binder);
+                    var value = callsite.Target(callsite, obj);
+
+                    stringBuilder.Append('\"');
+                    stringBuilder.Append(member);
+                    stringBuilder.Append("\":");
+                    AppendValue(stringBuilder, value);
+                }
+                stringBuilder.Append('}');
+            }
             else
             {
                 bool implementsIDictionary = type.GetInterfaces()
