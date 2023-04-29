@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Runtime.Serialization;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -205,5 +206,94 @@ namespace TinyJson.Test
             Assert.AreEqual(curTime.ToJson(), "\"" + DateTime.Now.ToString(System.Globalization.CultureInfo.InvariantCulture) + "\"");
         }
 
+        public class DictionaryType : IDictionary<string, int>
+        {
+            public bool Base { get; } = true;
+
+            private Dictionary<string, int> dict_ = new Dictionary<string, int>();
+
+            public int this[string key] { get => ((IDictionary<string, int>)dict_)[key]; set => ((IDictionary<string, int>)dict_)[key] = value; }
+
+            public ICollection<string> Keys => ((IDictionary<string, int>)dict_).Keys;
+
+            public ICollection<int> Values => ((IDictionary<string, int>)dict_).Values;
+
+            [DataMemberAttribute]
+            public int Count => ((IDictionary<string, int>)dict_).Count;
+
+            public bool IsReadOnly => ((IDictionary<string, int>)dict_).IsReadOnly;
+
+            public void Add(string key, int value)
+            {
+                ((IDictionary<string, int>)dict_).Add(key, value);
+            }
+
+            public void Add(KeyValuePair<string, int> item)
+            {
+                ((IDictionary<string, int>)dict_).Add(item);
+            }
+
+            public void Clear()
+            {
+                ((IDictionary<string, int>)dict_).Clear();
+            }
+
+            public bool Contains(KeyValuePair<string, int> item)
+            {
+                return ((IDictionary<string, int>)dict_).Contains(item);
+            }
+
+            public bool ContainsKey(string key)
+            {
+                return ((IDictionary<string, int>)dict_).ContainsKey(key);
+            }
+
+            public void CopyTo(KeyValuePair<string, int>[] array, int arrayIndex)
+            {
+                ((IDictionary<string, int>)dict_).CopyTo(array, arrayIndex);
+            }
+
+            public IEnumerator<KeyValuePair<string, int>> GetEnumerator()
+            {
+                return ((IDictionary<string, int>)dict_).GetEnumerator();
+            }
+
+            public bool Remove(string key)
+            {
+                return ((IDictionary<string, int>)dict_).Remove(key);
+            }
+
+            public bool Remove(KeyValuePair<string, int> item)
+            {
+                return ((IDictionary<string, int>)dict_).Remove(item);
+            }
+
+            public bool TryGetValue(string key, out int value)
+            {
+                return ((IDictionary<string, int>)dict_).TryGetValue(key, out value);
+            }
+
+            IEnumerator IEnumerable.GetEnumerator()
+            {
+                return ((IDictionary<string, int>)dict_).GetEnumerator();
+            }
+        }
+
+        [TestMethod]
+        public void TestIDictionary()
+        {
+            Assert.AreEqual("{\"Base\":true,\"Count\":2,\"foo\":123,\"bar\":321}", new DictionaryType { { "foo", 123 }, { "bar", 321 } }.ToJson());
+        }
+
+        public class DictionaryTypeExtended : DictionaryType
+        {
+            public bool Ext { get; } = true;
+        }
+
+        [TestMethod]
+        public void TestIDictionaryExtended()
+        {
+            Assert.AreEqual("{\"Ext\":true,\"Base\":true,\"Count\":2,\"foo\":123,\"bar\":321}", new DictionaryTypeExtended { { "foo", 123 }, { "bar", 321 } }.ToJson());
+        }
     }
 }
