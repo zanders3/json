@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 using System.Runtime.Serialization;
 using System.Text;
@@ -133,10 +134,43 @@ namespace TinyJson
                 }
                 stringBuilder.Append('}');
             }
+            else if (typeof(System.Dynamic.DynamicObject).IsAssignableFrom(type))
+            {
+                // support to convert DynamicObject to Json
+                stringBuilder.Append('{');
+                System.Dynamic.DynamicObject obj = item as System.Dynamic.DynamicObject;
+                bool isFirst = true;
+                foreach (var member in obj.GetDynamicMemberNames())
+                {
+                    if (isFirst)
+                    {
+                        isFirst = false;
+                    }
+                    else
+                    {
+                        stringBuilder.Append(',');
+                    }
+
+                    var binder = Microsoft.CSharp.RuntimeBinder.Binder.GetMember(Microsoft.CSharp.RuntimeBinder.CSharpBinderFlags.None, member, item.GetType()
+                        , new[] { Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo.Create(Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfoFlags.None, null) });
+
+                    var callsite = System.Runtime.CompilerServices.CallSite<Func<System.Runtime.CompilerServices.CallSite, object, object>>.Create(binder);
+                    var value = callsite.Target(callsite, obj);
+
+                    stringBuilder.Append('\"');
+                    stringBuilder.Append(member);
+                    stringBuilder.Append("\":");
+                    AppendValue(stringBuilder, value);
+                }
+                stringBuilder.Append('}');
+            }
             else
             {
-                stringBuilder.Append('{');
+                bool implementsIDictionary = type.GetInterfaces()
+                    .Where(x => x.IsGenericType && x.GetGenericTypeDefinition() == typeof(IDictionary<,>))
+                    .Any(x => x.GetGenericArguments()[0] == typeof(string));
 
+                stringBuilder.Append('{');
                 bool isFirst = true;
                 FieldInfo[] fieldInfos = type.GetFields(BindingFlags.Instance | BindingFlags.Public | BindingFlags.FlattenHierarchy);
                 for (int i = 0; i < fieldInfos.Length; i++)
@@ -151,6 +185,7 @@ namespace TinyJson
                             isFirst = false;
                         else
                             stringBuilder.Append(',');
+
                         stringBuilder.Append('\"');
                         stringBuilder.Append(GetMemberName(fieldInfos[i]));
                         stringBuilder.Append("\":");
@@ -163,6 +198,17 @@ namespace TinyJson
                     if (!propertyInfo[i].CanRead || propertyInfo[i].IsDefined(typeof(IgnoreDataMemberAttribute), true))
                         continue;
 
+                    // ignore indexing parameter
+                    if (propertyInfo[i].GetIndexParameters().Length > 0)
+                        continue;
+
+                    // ignore IDictionary properties if it is implemented unless explicitly stated otherwise
+                    if (implementsIDictionary && IDictionaryProperties.Contains(propertyInfo[i].Name) 
+                        && !propertyInfo[i].IsDefined(typeof(DataMemberAttribute), true))
+                    {
+                        continue;
+                    }
+
                     object value = propertyInfo[i].GetValue(item, null);
                     if (value != null)
                     {
@@ -170,10 +216,29 @@ namespace TinyJson
                             isFirst = false;
                         else
                             stringBuilder.Append(',');
+
                         stringBuilder.Append('\"');
                         stringBuilder.Append(GetMemberName(propertyInfo[i]));
                         stringBuilder.Append("\":");
                         AppendValue(stringBuilder, value);
+                    }
+                }
+
+                // output IDictionary attributes if dictionary interface is implemented
+                if (implementsIDictionary)
+                {
+                    dynamic dict = item;
+                    foreach (string key in dict.Keys)
+                    {
+                        if (isFirst)
+                            isFirst = false;
+                        else
+                            stringBuilder.Append(',');
+
+                        stringBuilder.Append('\"');
+                        stringBuilder.Append(key);
+                        stringBuilder.Append("\":");
+                        AppendValue(stringBuilder, dict[key]);
                     }
                 }
 
@@ -192,5 +257,9 @@ namespace TinyJson
 
             return member.Name;
         }
+
+        // index all the default properties from IDictionary interface
+        private static HashSet<string> IDictionaryProperties = typeof(IDictionary<,>).GetInterfaces().SelectMany(x => x.GetProperties())
+            .Concat(typeof(IDictionary<,>).GetProperties()).Select(x => x.Name).ToHashSet();
     }
 }
